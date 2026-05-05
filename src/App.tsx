@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, Phone, User, Zap, BarChart2 } from 'lucide-react';
@@ -805,6 +805,18 @@ function LSCalc({ exp, setExp }: any) {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    const stored = window.localStorage.getItem('angel_theme');
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem('angel_theme', theme);
+  }, [theme]);
+
   const [mode, setMode] = useState('sip'), [exp, setExp] = useState(40000), [faq, setFaq] = useState<number | null>(null), [done, setDone] = useState(false);
   const [fd, setFd] = useState({ name: '', phone: '', cap: '' });
 
@@ -831,7 +843,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen text-slate-100" style={{ background: '#060b14', fontFamily: "'Inter',system-ui,-apple-system,sans-serif" }}>
+    <div className={`min-h-screen ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`} style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Inter',system-ui,-apple-system,sans-serif" }}>
 
       {/* Toast */}
       <div id="call-toast" style={{ display: 'none', background: 'linear-gradient(135deg,#059669,#047857)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
@@ -852,7 +864,7 @@ export default function App() {
 
       {/* Nav */}
       <motion.nav className="sticky top-0 z-40" initial={{ y: -80 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }}
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px) saturate(160%)', background: 'rgba(6,11,20,0.8)' }}>
+        style={{ borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px) saturate(160%)', background: 'var(--bg-soft)' }}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Angel Investments" className="w-14 h-14 object-contain flex-shrink-0" />
@@ -861,12 +873,37 @@ export default function App() {
               <p className="text-[10px] text-amber-400 italic mt-1.5 leading-none">Learn to Earn</p>
             </div>
           </div>
-          <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
-            style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
-            whileHover={{ scale: 1.05, boxShadow: '0 6px 24px rgba(245,158,11,0.45)' }} whileTap={{ scale: 0.97 }}>
-            <Phone className="w-3.5 h-3.5" /> +91 90352 54332
-          </motion.button>
+          <div className="flex items-center gap-3">
+            <label className="cosmic-toggle" aria-label="Toggle theme">
+              <input className="toggle" type="checkbox"
+                checked={theme === 'light'}
+                onChange={e => setTheme(e.target.checked ? 'light' : 'dark')} />
+              <div className="slider">
+                <div className="cosmos"></div>
+                <div className="energy-line"></div>
+                <div className="energy-line"></div>
+                <div className="energy-line"></div>
+                <div className="toggle-orb">
+                  <div className="inner-orb"></div>
+                  <div className="ring"></div>
+                </div>
+                <div className="particles">
+                  <div style={{ '--angle': '30deg' } as React.CSSProperties} className="particle"></div>
+                  <div style={{ '--angle': '60deg' } as React.CSSProperties} className="particle"></div>
+                  <div style={{ '--angle': '90deg' } as React.CSSProperties} className="particle"></div>
+                  <div style={{ '--angle': '120deg' } as React.CSSProperties} className="particle"></div>
+                  <div style={{ '--angle': '150deg' } as React.CSSProperties} className="particle"></div>
+                  <div style={{ '--angle': '180deg' } as React.CSSProperties} className="particle"></div>
+                </div>
+              </div>
+            </label>
+            <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
+              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
+              whileHover={{ scale: 1.05, boxShadow: '0 6px 24px rgba(245,158,11,0.45)' }} whileTap={{ scale: 0.97 }}>
+              <Phone className="w-3.5 h-3.5" /> +91 90352 54332
+            </motion.button>
+          </div>
         </div>
       </motion.nav>
 
