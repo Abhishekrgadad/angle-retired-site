@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, Phone, User, Zap, BarChart2 } from 'lucide-react';
+
+const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-IN').format(Math.round(n));
 const fmtC = (n: number) => n >= 10000000 ? `₹${(n / 10000000).toFixed(2)} Cr` : n >= 100000 ? `₹${(n / 100000).toFixed(2)} L` : `₹${Math.round(n)}`;
@@ -34,6 +37,93 @@ function HeroOrbs() {
         style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', bottom: '8%', left: '28%', background: 'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 68%)' }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 220, background: 'linear-gradient(to bottom, transparent, #060b14)' }} />
     </div>
+  );
+}
+
+function PageContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <section className="w-full px-6 py-24">
+      <div className="max-w-7xl mx-auto">{children}</div>
+    </section>
+  );
+}
+
+function AppHeader() {
+  const links = [
+    { to: '/', label: 'Home' },
+    { to: '/sip', label: 'SIP Plan' },
+    { to: '/lumpsum', label: 'Lumpsum Plan' },
+  ];
+
+  return (
+    <motion.nav className="sticky top-0 z-40 w-full" initial={{ y: -80 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }}
+      style={{ borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px) saturate(160%)', background: 'var(--bg-soft)' }}>
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3">
+          <img src="/logo.png" alt="Angel Investments" className="w-14 h-14 object-contain flex-shrink-0" />
+          <div className="flex flex-col" style={{ paddingTop: '4px' }}>
+            <p className="font-bold text-sm leading-none text-white tracking-wide">Angel Investments</p>
+            <p className="text-[10px] text-amber-400 italic mt-1.5 leading-none">Learn to Earn</p>
+          </div>
+        </Link>
+        <div className="hidden md:flex items-center gap-8">
+          {links.map(link => (
+            <NavLink key={link.to} to={link.to} className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+              {link.label}
+            </NavLink>
+          ))}
+        </div>
+        <Link to="/sip" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
+          style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}>
+          <Phone className="w-3.5 h-3.5" /> Get Started
+        </Link>
+      </div>
+    </motion.nav>
+  );
+}
+
+function HomePage() {
+  return (
+    <section className="relative w-full px-6 pt-24 pb-20 text-center overflow-hidden">
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        src={HERO_VIDEO_URL}
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{ filter: 'brightness(0.58) saturate(1.15)' }}
+      />
+      <div className="absolute inset-0 bg-slate-950/70" />
+      <HeroOrbs />
+      <div className="relative z-10 max-w-6xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-8"
+          style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
+          <Sparkles className="w-3.5 h-3.5" /> Retirement Reality Check
+        </motion.div>
+        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease }}
+          className="text-4xl md:text-5xl lg:text-7xl font-black mb-6 leading-tight tracking-tight"
+          style={{ background: 'linear-gradient(135deg,#ffffff 30%,rgba(255,255,255,0.4))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Will your money last<br />as long as you do?
+        </motion.h1>
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease }}
+          className="text-slate-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+          SIP or lumpsum — see if your retirement plan actually works. Adjusted for real Indian inflation, with withdrawal step-up. Takes 60 seconds.
+        </motion.p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3, ease }}
+          className="flex flex-wrap gap-4 justify-center mb-14">
+          <Link to="/sip" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-slate-900 text-sm"
+            style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.4)' }}>
+            <Play className="w-4 h-4 fill-current" /> Check SIP Plan
+          </Link>
+          <Link to="/lumpsum" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-emerald-300 text-sm"
+            style={{ border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.05)' }}>
+            <Phone className="w-4 h-4" /> View Lumpsum Plan
+          </Link>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
@@ -817,12 +907,16 @@ export default function App() {
     window.localStorage.setItem('angel_theme', theme);
   }, [theme]);
 
-  const [mode, setMode] = useState('sip'), [exp, setExp] = useState(40000), [faq, setFaq] = useState<number | null>(null), [done, setDone] = useState(false);
+  const location = useLocation();
+  const isSip = location.pathname === '/sip';
+  const isLS = location.pathname === '/lumpsum';
+  const routeMode = isSip ? 'sip' : isLS ? 'lumpsum' : 'home';
+  const [exp, setExp] = useState(40000), [faq, setFaq] = useState<number | null>(null), [done, setDone] = useState(false);
   const [fd, setFd] = useState({ name: '', phone: '', cap: '' });
 
   const submit = async () => {
     if (!fd.name || !fd.phone) return;
-    const lead = { ...fd, mode, timestamp: new Date().toISOString() };
+    const lead = { ...fd, mode: routeMode, timestamp: new Date().toISOString() };
     const existing = JSON.parse(sessionStorage.getItem('angel_leads') || '[]');
     existing.push(lead);
     sessionStorage.setItem('angel_leads', JSON.stringify(existing));
@@ -843,7 +937,7 @@ export default function App() {
   ];
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`} style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Inter',system-ui,-apple-system,sans-serif" }}>
+    <div className={`min-h-screen w-full ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`} style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Inter',system-ui,-apple-system,sans-serif" }}>
 
       {/* Toast */}
       <div id="call-toast" style={{ display: 'none', background: 'linear-gradient(135deg,#059669,#047857)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
@@ -863,7 +957,7 @@ export default function App() {
       </motion.button>
 
       {/* Nav */}
-      <motion.nav className="sticky top-0 z-40" initial={{ y: -80 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }}
+      <motion.nav className="sticky top-0 z-40 w-full" initial={{ y: -80 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }}
         style={{ borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px) saturate(160%)', background: 'var(--bg-soft)' }}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -872,6 +966,17 @@ export default function App() {
               <p className="font-bold text-sm leading-none text-white tracking-wide">Angel Investments</p>
               <p className="text-[10px] text-amber-400 italic mt-1.5 leading-none">Learn to Earn</p>
             </div>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <NavLink to="/" className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+              Home
+            </NavLink>
+            <NavLink to="/sip" className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+              SIP Plan
+            </NavLink>
+            <NavLink to="/lumpsum" className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+              Lumpsum Plan
+            </NavLink>
           </div>
           <div className="flex items-center gap-3">
             <label className="cosmic-toggle" aria-label="Toggle theme">
@@ -907,10 +1012,22 @@ export default function App() {
         </div>
       </motion.nav>
 
-      {/* Hero */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-24 pb-20 text-center overflow-hidden">
+      {(!isSip && !isLS) && (
+      <>
+        {/* Hero */}
+        <section className="relative w-full px-6 pt-24 pb-20 text-center overflow-hidden">
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+          src={HERO_VIDEO_URL}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ filter: 'brightness(0.58) saturate(1.15)' }}
+        />
+        <div className="absolute inset-0 bg-slate-950/70" />
         <HeroOrbs />
-        <div className="relative z-10">
+        <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-8"
             style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
@@ -927,18 +1044,14 @@ export default function App() {
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3, ease }}
             className="flex flex-wrap gap-4 justify-center mb-14">
-            <motion.a href="#calc" onClick={(e: any) => { e.preventDefault(); document.getElementById('calc')?.scrollIntoView({ behavior: 'smooth' }); }}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-slate-900 text-sm"
-              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.4)' }}
-              whileHover={{ scale: 1.05, boxShadow: '0 12px 40px rgba(245,158,11,0.55)' }} whileTap={{ scale: 0.97 }}>
-              <Play className="w-4 h-4 fill-current" /> Check My Plan
-            </motion.a>
-            <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-emerald-300 text-sm"
-              style={{ border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.05)' }}
-              whileHover={{ scale: 1.05, background: 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.4)' }} whileTap={{ scale: 0.97 }}>
-              <Phone className="w-4 h-4" /> Talk to us now
-            </motion.button>
+            <Link to="/sip" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-slate-900 text-sm"
+              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.4)' }}>
+              <Play className="w-4 h-4 fill-current" /> Check SIP Plan
+            </Link>
+            <Link to="/lumpsum" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-emerald-300 text-sm"
+              style={{ border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.05)' }}>
+              <Phone className="w-4 h-4" /> View Lumpsum Plan
+            </Link>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-wrap items-center justify-center gap-8 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -953,43 +1066,18 @@ export default function App() {
           </motion.div>
         </div>
       </section>
+      </>
+      )}
 
-      {/* Toggle + Calculator */}
-      <section id="calc" className="max-w-7xl mx-auto px-6 pb-24">
-        <FadeUp>
-          <div className="flex justify-center mb-10">
-            <div className="relative inline-flex p-1.5 rounded-2xl gap-1.5"
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
-              {['sip', 'lumpsum'].map(m => (
-                <motion.button key={m} onClick={() => setMode(m)}
-                  className={`relative flex items-center gap-3 px-7 py-4 rounded-xl text-sm font-semibold transition-colors z-10 ${mode === m ? (m === 'sip' ? 'text-slate-900' : 'text-white') : 'text-slate-400 hover:text-slate-200'}`}>
-                  {mode === m && (
-                    <motion.div layoutId="tab-pill" className="absolute inset-0 rounded-xl"
-                      style={{ background: m === 'sip' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)', boxShadow: m === 'sip' ? '0 4px 20px rgba(245,158,11,0.4)' : '0 4px 20px rgba(124,58,237,0.4)' }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 32 }} />
-                  )}
-                  {m === 'sip' ? <BarChart2 className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
-                  <div className="text-left">
-                    <div className="font-bold">{m === 'sip' ? 'SIP Plan' : 'Lumpsum Plan'}</div>
-                    <div className={`text-xs font-normal ${mode === m ? (m === 'sip' ? 'text-slate-700' : 'text-violet-200') : 'text-slate-600'}`}>
-                      {m === 'sip' ? 'Monthly investing · Any amount' : 'One-time · Min ₹10 Lakh'}
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        </FadeUp>
-        <AnimatePresence mode="wait">
-          <motion.div key={mode} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.4, ease }}>
-            {mode === 'sip' ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
-          </motion.div>
-        </AnimatePresence>
-      </section>
+      {(isSip || isLS) && (
+        <PageContainer>
+          {isSip ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
+        </PageContainer>
+      )}
 
       {/* Consultation */}
-      <section style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(180deg,#060b14 0%,#061410 50%,#060b14 100%)' }}>
+      {!isSip && !isLS && (
+      <section className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(180deg,#060b14 0%,#061410 50%,#060b14 100%)' }}>
         <div className="max-w-4xl mx-auto px-6 py-24">
           <FadeUp className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-6"
@@ -1077,9 +1165,11 @@ export default function App() {
           )}
         </div>
       </section>
+      )}
 
       {/* FAQ */}
-      <section className="max-w-4xl mx-auto px-6 py-24">
+      {!isSip && !isLS && (
+      <section className="w-full px-6 py-24">
         <FadeUp className="text-center mb-12">
           <h2 className="text-3xl font-black mb-2">Common Questions</h2>
           <p className="text-slate-500">From our YouTube community</p>
@@ -1109,9 +1199,10 @@ export default function App() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: '#060b14' }}>
+      <footer className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: '#060b14' }}>
         <div className="max-w-7xl mx-auto px-6 py-14">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
             <div>
