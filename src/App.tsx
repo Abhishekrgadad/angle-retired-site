@@ -4,7 +4,166 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, Phone, User, Zap, BarChart2 } from 'lucide-react';
 
-const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
+function MarketChartBg() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let w = 0, h = 0;
+    const resize = () => {
+      w = canvas.offsetWidth;
+      h = canvas.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const maxPts = 220;
+    const prices: number[] = [24000];
+    for (let i = 1; i < maxPts; i++)
+      prices.push(Math.max(20000, prices[i - 1] + (Math.random() - 0.47) * 90));
+
+    const tickers = [
+      { label: 'NIFTY 50',    val: '24,178',      pct: '▲1.24%',    up: true  },
+      { label: 'SENSEX',      val: '79,802',      pct: '▲0.98%',    up: true  },
+      { label: 'GOLD',        val: '₹72,420',     pct: '▲0.34%',    up: true  },
+      { label: 'MIDCAP 150',  val: '57,340',      pct: '▲1.87%',    up: true  },
+      { label: 'MF RETURNS',  val: '18.2% CAGR',  pct: '▲SIP',      up: true  },
+      { label: 'SMALLCAP',    val: '16,892',      pct: '▲2.11%',    up: true  },
+    ];
+
+    let frame = 0, tickerX = 0, animId: number;
+
+    const draw = () => {
+      if (frame % 3 === 0) {
+        prices.push(Math.max(20000, prices[prices.length - 1] + (Math.random() - 0.47) * 90));
+        if (prices.length > maxPts) prices.shift();
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      // grid
+      const gs = 56;
+      ctx.lineWidth = 0.5;
+      for (let x = 0; x <= w; x += gs) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y <= h; y += gs) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      // dashed price levels
+      ctx.setLineDash([3, 6]);
+      ctx.lineWidth = 0.5;
+      [0.25, 0.48, 0.7].forEach(f => {
+        const y = h * 0.08 + h * 0.6 * f;
+        ctx.strokeStyle = 'rgba(245,158,11,0.08)';
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // chart geometry
+      const cTop = h * 0.07, cBot = h * 0.7, cH = cBot - cTop;
+      const N = Math.min(prices.length, 130);
+      const slice = prices.slice(-N);
+      const minP = Math.min(...slice) * 0.997;
+      const maxP = Math.max(...slice) * 1.003;
+      const range = maxP - minP || 1;
+      const toX = (i: number) => (i / (N - 1)) * w;
+      const toY = (p: number) => cTop + cH - ((p - minP) / range) * cH;
+
+      // area fill
+      const ag = ctx.createLinearGradient(0, cTop, 0, cBot);
+      ag.addColorStop(0, 'rgba(245,158,11,0.22)');
+      ag.addColorStop(0.55, 'rgba(245,158,11,0.06)');
+      ag.addColorStop(1, 'rgba(245,158,11,0)');
+      ctx.beginPath();
+      ctx.moveTo(toX(0), toY(slice[0]));
+      for (let i = 1; i < slice.length; i++) {
+        const cx = (toX(i - 1) + toX(i)) / 2;
+        ctx.bezierCurveTo(cx, toY(slice[i-1]), cx, toY(slice[i]), toX(i), toY(slice[i]));
+      }
+      ctx.lineTo(w, cBot); ctx.lineTo(0, cBot); ctx.closePath();
+      ctx.fillStyle = ag; ctx.fill();
+
+      // line
+      ctx.beginPath();
+      ctx.moveTo(toX(0), toY(slice[0]));
+      for (let i = 1; i < slice.length; i++) {
+        const cx = (toX(i - 1) + toX(i)) / 2;
+        ctx.bezierCurveTo(cx, toY(slice[i-1]), cx, toY(slice[i]), toX(i), toY(slice[i]));
+      }
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(245,158,11,0.6)';
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // candlesticks
+      const volTop = h * 0.74, volH = h * 0.12;
+      const cw = Math.max(2, w / N - 1);
+      for (let i = 1; i < slice.length; i++) {
+        const up = slice[i] >= slice[i - 1];
+        const bh = Math.max(1.5, (Math.abs(slice[i] - slice[i - 1]) / range) * volH * 5);
+        ctx.fillStyle = up ? 'rgba(16,185,129,0.58)' : 'rgba(239,68,68,0.48)';
+        ctx.fillRect(toX(i) - cw / 2, volTop + volH - bh, cw, bh);
+      }
+
+      // live dot with pulse
+      const lx = toX(slice.length - 1), ly = toY(slice[slice.length - 1]);
+      const pulse = 0.5 + 0.5 * Math.sin(frame * 0.09);
+      ctx.beginPath(); ctx.arc(lx, ly, 3 + pulse * 5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(245,158,11,${0.1 * pulse})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = 'rgba(245,158,11,0.95)'; ctx.shadowBlur = 14;
+      ctx.fill(); ctx.shadowBlur = 0;
+      ctx.font = '600 11px Inter,sans-serif';
+      ctx.fillStyle = 'rgba(245,158,11,0.9)';
+      ctx.fillText(`₹${Math.round(slice[slice.length - 1]).toLocaleString('en-IN')}`, lx + 10, ly + 4);
+
+      // ticker strip
+      const sy = h - 34;
+      ctx.fillStyle = 'rgba(6,11,20,0.9)'; ctx.fillRect(0, sy, w, 34);
+      ctx.strokeStyle = 'rgba(245,158,11,0.14)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(w, sy); ctx.stroke();
+
+      tickerX += 0.45;
+      const tw = 192, totalTW = tickers.length * tw;
+      ctx.save(); ctx.beginPath(); ctx.rect(0, sy, w, 34); ctx.clip();
+      for (let rep = -1; rep <= Math.ceil(w / totalTW) + 1; rep++) {
+        tickers.forEach((tk, t) => {
+          const x = rep * totalTW + t * tw - (tickerX % totalTW);
+          if (x > w + tw || x < -tw) return;
+          ctx.font = '10px Inter,sans-serif'; ctx.fillStyle = 'rgba(148,163,184,0.65)';
+          ctx.fillText(tk.label, x + 10, sy + 13);
+          ctx.font = 'bold 11px Inter,sans-serif'; ctx.fillStyle = tk.up ? '#10b981' : '#ef4444';
+          ctx.fillText(`${tk.val}  ${tk.pct}`, x + 10, sy + 28);
+          ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x + tw - 8, sy + 5); ctx.lineTo(x + tw - 8, sy + 29); ctx.stroke();
+        });
+      }
+      ctx.restore();
+
+      frame++;
+      animId = requestAnimationFrame(draw);
+    };
+
+    animId = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(animId); ro.disconnect(); };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
+}
 
 const fmt = (n: number) => new Intl.NumberFormat('en-IN').format(Math.round(n));
 const fmtC = (n: number) => n >= 10000000 ? `₹${(n / 10000000).toFixed(2)} Cr` : n >= 100000 ? `₹${(n / 100000).toFixed(2)} L` : `₹${Math.round(n)}`;
@@ -1016,16 +1175,8 @@ export default function App() {
       <>
         {/* Hero */}
         <section className="relative w-full px-6 pt-24 pb-20 text-center overflow-hidden">
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-          src={HERO_VIDEO_URL}
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{ filter: 'brightness(0.58) saturate(1.15)' }}
-        />
-        <div className="absolute inset-0 bg-slate-950/70" />
+          <MarketChartBg />
+          <div className="absolute inset-0 bg-slate-950/60" />
         <HeroOrbs />
         <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}
