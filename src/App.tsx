@@ -296,12 +296,19 @@ function CalcHeroSection({ mode }: { mode: 'sip' | 'lumpsum' }) {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease }}>
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.08] tracking-tight text-white">
-              {cfg.headline}
-            </h1>
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.1] tracking-tight"
-              style={{ background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent}bb)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              {cfg.headlineAccent}
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.12] tracking-tight">
+              <span className="text-white">{cfg.headline}</span>
+              <br />
+              <span style={{
+                background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent}bb)`,
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                color: 'transparent',
+                display: 'inline-block',
+              }}>
+                {cfg.headlineAccent}
+              </span>
             </h1>
           </motion.div>
 
