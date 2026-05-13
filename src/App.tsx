@@ -9,7 +9,30 @@ const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
 const fmt = (n: number) => new Intl.NumberFormat('en-IN').format(Math.round(n));
 const fmtC = (n: number) => n >= 10000000 ? `₹${(n / 10000000).toFixed(2)} Cr` : n >= 100000 ? `₹${(n / 100000).toFixed(2)} L` : `₹${Math.round(n)}`;
 const tickFmt = (v: number) => v >= 10000000 ? `${(v / 10000000).toFixed(1)}Cr` : v >= 100000 ? `${(v / 100000).toFixed(0)}L` : `${Math.round(v)}`;
-const TT = { contentStyle: { backgroundColor: '#050c18', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', fontSize: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }, formatter: (v: number) => fmtC(v), labelFormatter: (l: number) => `Age ${l}` };
+
+function useChartTheme() {
+  return true;
+}
+
+function makeChartColors(isDark: boolean) {
+  return {
+    grid:  isDark ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.06)',
+    axis:  isDark ? '#334155' : '#e2e8f0',
+    tick:  isDark ? '#475569' : '#64748b',
+    TT: {
+      contentStyle: {
+        backgroundColor: isDark ? '#050c18' : '#ffffff',
+        border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.1)'}`,
+        borderRadius: '12px',
+        fontSize: '12px',
+        color: isDark ? '#f9fafb' : '#0f172a',
+        boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 4px 20px rgba(15,23,42,0.12)',
+      },
+      formatter: (v: number) => fmtC(v),
+      labelFormatter: (l: number) => `Age ${l}`,
+    },
+  };
+}
 
 const ease = [0.21, 0.47, 0.32, 0.98];
 
@@ -35,7 +58,7 @@ function HeroOrbs() {
         style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', top: '15%', right: '-8%', background: 'radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 68%)' }} />
       <motion.div animate={{ y: [0, -18, 0], scale: [1, 1.12, 1] }} transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', bottom: '8%', left: '28%', background: 'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 68%)' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 220, background: 'linear-gradient(to bottom, transparent, #060b14)' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 220, background: 'linear-gradient(to bottom, transparent, var(--bg))' }} />
     </div>
   );
 }
@@ -130,8 +153,13 @@ function HomePage() {
 function GlassCard({ children, className = '', glow = '' }: any) {
   return (
     <div className={`relative rounded-2xl overflow-hidden ${className}`}
-      style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(20px) saturate(160%)', border: '1px solid rgba(255,255,255,0.06)', boxShadow: `0 4px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04)${glow ? `, 0 0 60px ${glow}` : ''}` }}>
-      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        border: '1px solid var(--card-border)',
+        boxShadow: `0 4px 32px var(--shadow), inset 0 1px 0 var(--surface-strong)${glow ? `, 0 0 60px ${glow}` : ''}`,
+      }}>
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--card-shimmer), transparent)' }} />
       {children}
     </div>
   );
@@ -148,7 +176,7 @@ function Slider({ label, value, onChange, min, max, step, suffix = '', prefix = 
           {prefix}{format ? format(value) : value}{suffix}
         </motion.span>
       </div>
-      <div className="relative h-1.5 rounded-full" style={{ background: 'rgba(51,65,85,0.6)' }}>
+      <div className="relative h-1.5 rounded-full" style={{ background: 'var(--track-bg)' }}>
         <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-75"
           style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#b45309,#f59e0b)', boxShadow: '0 0 8px rgba(245,158,11,0.4)' }} />
         <input type="range" min={min} max={max} step={step} value={value}
@@ -184,7 +212,7 @@ function SectionHeader({ n, title, sub }: any) {
     <motion.div ref={ref} className="flex items-start gap-4 mb-8"
       initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.6, ease }}>
-      <span className="text-6xl font-black leading-none select-none" style={{ color: 'rgba(255,255,255,0.04)' }}>{n}</span>
+      <span className="text-6xl font-black leading-none select-none" style={{ color: 'var(--num-ghost)' }}>{n}</span>
       <div className="pt-1">
         <h2 className="text-2xl md:text-3xl font-bold text-white">{title}</h2>
         {sub && <p className="text-sm text-slate-400 mt-1">{sub}</p>}
@@ -218,13 +246,13 @@ function ExpenseRow({ icon, label, value, total, color, onChange }: any) {
             <input autoFocus type="number" value={raw} onChange={e => setRaw(e.target.value)}
               onBlur={commit} onKeyDown={(e: any) => (e.key === 'Enter' || e.key === 'Escape') && commit()}
               className="w-28 rounded px-2 py-0.5 text-sm text-right focus:outline-none border border-amber-500"
-              style={{ background: 'rgba(255,255,255,0.05)' }} /></div>
+              style={{ background: 'var(--input-bg)', color: 'var(--text)' }} /></div>
           : <button onClick={() => { setRaw(String(value)); setEditing(true); }} className="flex items-center gap-1.5 group/btn">
             <span className="text-sm font-semibold">₹{fmt(value)}</span>
             <span className="text-xs text-slate-600 group-hover/btn:text-amber-400 transition">✏</span>
           </button>}
       </div>
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(51,65,85,0.5)' }}>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--track-bg)' }}>
         <motion.div className={`h-full ${color} rounded-full`}
           initial={{ width: 0 }} animate={{ width: `${pct}%` }}
           transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
@@ -249,7 +277,7 @@ function ExpensePanel({ infExp, customExp, setCustomExp, years }: any) {
         <ExpenseRow icon={<Plane className="w-4 h-4" />} label="Leisure & Travel" value={infExp.leisure} total={infExp.total} color="bg-violet-500" onChange={(v: number) => upd('leisure', v)} />
         <ExpenseRow icon={<Shield className="w-4 h-4" />} label="Emergency Buffer" value={infExp.buf} total={infExp.total} color="bg-amber-500" onChange={(v: number) => upd('buf', v)} />
       </div>
-      <div className="flex justify-between items-center pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="flex justify-between items-center pt-4" style={{ borderTop: '1px solid var(--border)' }}>
         <span className="font-semibold text-white">Total Monthly Need</span>
         <div className="text-right">
           <span className="text-xl font-black text-white">₹{fmt(infExp.total)}</span>
@@ -265,10 +293,10 @@ function FormField({ icon, label, value, onChange, placeholder, type = 'text' }:
     <div className="flex flex-col gap-1.5">
       <label className="text-xs uppercase tracking-widest text-slate-500 flex items-center gap-1.5">{icon}{label}</label>
       <input type={type} value={value} onChange={(e: any) => onChange(e.target.value)} placeholder={placeholder}
-        className="rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
-        onFocus={e => { e.target.style.border = '1px solid rgba(245,158,11,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.08)'; }}
-        onBlur={e => { e.target.style.border = '1px solid rgba(255,255,255,0.08)'; e.target.style.boxShadow = 'none'; }} />
+        className="rounded-xl px-3 py-2.5 text-sm placeholder-slate-500 focus:outline-none transition"
+        style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)', outline: 'none', color: 'var(--text)' }}
+        onFocus={e => { e.target.style.border = '1px solid rgba(245,158,11,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.09)'; }}
+        onBlur={e => { e.target.style.border = '1px solid var(--input-border)'; e.target.style.boxShadow = 'none'; }} />
     </div>
   );
 }
@@ -281,7 +309,7 @@ function showCallToast() {
 function WithdrawalPanel({ exp, yrs, wd, wMode, setWMode, cW, setCW, wInflationOn, setWInflationOn, wInflation, setWInflation }: any) {
   return (
     <GlassCard className="p-5 mb-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <p className="text-xs uppercase tracking-widest text-slate-500 mb-1">Starting monthly withdrawal at retirement</p>
           <p className="text-3xl font-black text-white">₹{fmt(wd.mw)}<span className="text-sm font-normal text-slate-400">/month</span></p>
@@ -290,14 +318,14 @@ function WithdrawalPanel({ exp, yrs, wd, wMode, setWMode, cW, setCW, wInflationO
         <motion.button onClick={() => { setWMode(wMode === 'custom' ? 'auto' : 'custom'); if (wMode === 'auto' && cW === null) setCW(wd.suggestedW); }}
           whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
           className={`self-start sm:self-auto flex-shrink-0 px-4 py-2 rounded-lg text-xs font-semibold border transition ${wMode === 'custom' ? 'text-amber-300' : 'text-slate-400 hover:text-amber-400'}`}
-          style={wMode === 'custom' ? { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' } : { border: '1px solid rgba(255,255,255,0.08)' }}>
+          style={wMode === 'custom' ? { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' } : { border: '1px solid var(--border)' }}>
           {wMode === 'custom' ? '✓ Manual amount' : '✏ Change amount'}
         </motion.button>
       </div>
       <AnimatePresence>
         {wMode === 'custom' && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease }} className="mb-5 pb-5 overflow-hidden" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            transition={{ duration: 0.3, ease }} className="mb-5 pb-5 overflow-hidden" style={{ borderBottom: '1px solid var(--border)' }}>
             <Slider label="Your starting monthly withdrawal" value={cW || wd.suggestedW} onChange={setCW}
               min={10000} max={Math.max(Math.round(wd.suggestedW * 3), 500000)} step={5000} prefix="₹" format={fmt} />
             <div className="flex flex-wrap gap-1.5 mt-3">
@@ -305,7 +333,7 @@ function WithdrawalPanel({ exp, yrs, wd, wMode, setWMode, cW, setCW, wInflationO
                 <motion.button key={m} onClick={() => setCW(Math.round(wd.suggestedW * m))}
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                   className="px-2 py-1 text-[11px] rounded-lg text-slate-400 hover:text-amber-300 transition"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)' }}>
                   {m}x · ₹{fmt(Math.round(wd.suggestedW * m))}
                 </motion.button>
               ))}
@@ -323,7 +351,7 @@ function WithdrawalPanel({ exp, yrs, wd, wMode, setWMode, cW, setCW, wInflationO
           <motion.button onClick={() => setWInflationOn(!wInflationOn)}
             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
             className={`flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold border transition whitespace-nowrap ${wInflationOn ? 'text-indigo-300' : 'text-slate-300 hover:text-indigo-300'}`}
-            style={wInflationOn ? { background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.4)' } : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            style={wInflationOn ? { background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.4)' } : { background: 'var(--surface-alt)', border: '1px solid var(--border)' }}>
             {wInflationOn ? '✓ Step-up ON' : 'Step-up OFF'}
           </motion.button>
         </div>
@@ -541,6 +569,7 @@ function SIPCalc({ exp, setExp }: any) {
   const [wInflationOn, setWInflationOn] = useState(true), [wInflation, setWInflation] = useState(6);
   const [cExp, setCExp] = useState<any>(null);
   const INF = 8, HINF = 10;
+  const C = makeChartColors(useChartTheme());
 
   const acc = useMemo(() => {
     let c = 0, ns = 0, cs = sip; const mr = ret / 100 / 12;
@@ -600,15 +629,15 @@ function SIPCalc({ exp, setExp }: any) {
             <Slider label="Retirement Yrs" value={ryr} onChange={setRyr} min={15} max={60} step={1} suffix=" yrs" />
             <Slider label="Monthly Expenses Now" value={exp} onChange={setExp} min={10000} max={300000} step={5000} prefix="₹" format={fmt} />
           </div>
-          <div className="mt-5 pt-5 flex flex-wrap gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="mt-5 pt-5 flex flex-wrap gap-3" style={{ borderTop: '1px solid var(--border)' }}>
             <motion.button onClick={() => setStepOn(!stepOn)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               className={`px-4 py-2 rounded-lg text-sm border transition ${stepOn ? 'text-amber-300' : 'text-slate-500'}`}
-              style={stepOn ? { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' } : { border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={stepOn ? { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' } : { border: '1px solid var(--border)' }}>
               {stepOn ? '✓ Step-up ON' : 'Step-up OFF'}
             </motion.button>
             <motion.button onClick={() => setCmp(!cmp)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               className={`px-4 py-2 rounded-lg text-sm border transition ${cmp ? 'text-sky-300' : 'text-slate-500'}`}
-              style={cmp ? { background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.3)' } : { border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={cmp ? { background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.3)' } : { border: '1px solid var(--border)' }}>
               {cmp ? '✓ Comparing Start Age' : 'Compare: Start 10 yrs late'}
             </motion.button>
           </div>
@@ -641,12 +670,12 @@ function SIPCalc({ exp, setExp }: any) {
                 <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35} /><stop offset="95%" stopColor="#f59e0b" stopOpacity={0} /></linearGradient>
                 <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#475569" stopOpacity={0.25} /><stop offset="95%" stopColor="#475569" stopOpacity={0} /></linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="age" stroke="#334155" tick={{ fontSize: 11, fill: '#475569' }} />
-              <YAxis stroke="#334155" tickFormatter={tickFmt} tick={{ fontSize: 11, fill: '#475569' }} width={52} />
-              <Tooltip {...TT} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="age" stroke={C.axis} tick={{ fontSize: 11, fill: C.tick }} />
+              <YAxis stroke={C.axis} tickFormatter={tickFmt} tick={{ fontSize: 11, fill: C.tick }} width={52} />
+              <Tooltip {...C.TT} />
               {magic && <ReferenceLine x={magic.age} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Magic Year', fill: '#f59e0b', fontSize: 11 }} />}
-              <Area type="monotone" dataKey="ns" stroke="#334155" strokeWidth={1.5} fill="url(#g2)" name="Flat SIP" />
+              <Area type="monotone" dataKey="ns" stroke={C.axis} strokeWidth={1.5} fill="url(#g2)" name="Flat SIP" />
               <Area type="monotone" dataKey="corpus" stroke="#f59e0b" strokeWidth={2.5} fill="url(#g1)" name="With step-up" />
             </AreaChart>
           </ResponsiveContainer>
@@ -690,10 +719,10 @@ function SIPCalc({ exp, setExp }: any) {
           <ResponsiveContainer width="100%" height={400}>
             <AreaChart data={jrn}>
               <defs><linearGradient id="jg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.35} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} /></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="age" stroke="#334155" tick={{ fontSize: 11, fill: '#475569' }} />
-              <YAxis stroke="#334155" tickFormatter={tickFmt} tick={{ fontSize: 11, fill: '#475569' }} width={52} />
-              <Tooltip {...TT} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="age" stroke={C.axis} tick={{ fontSize: 11, fill: C.tick }} />
+              <YAxis stroke={C.axis} tickFormatter={tickFmt} tick={{ fontSize: 11, fill: C.tick }} width={52} />
+              <Tooltip {...C.TT} />
               <ReferenceLine x={age + yrs} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Retire', fill: '#f59e0b', fontSize: 11 }} />
               {wd.dep && <ReferenceLine x={wd.dep} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'Depleted', fill: '#ef4444', fontSize: 11 }} />}
               <Area type="monotone" dataKey="value" stroke="#0ea5e9" strokeWidth={2.5} fill="url(#jg)" />
@@ -719,12 +748,12 @@ function SIPCalc({ exp, setExp }: any) {
               <p className="text-xs uppercase tracking-widest text-slate-500 mb-5">The Bottom Line</p>
               <div className="flex flex-col flex-1">
                 {[['Starting monthly income', `₹${fmt(wd.mw)}`, 'text-sky-400'], ['Monthly expenses (inflated)', `₹${fmt(iExp.total)}`, 'text-white'], [wd.dep ? 'Corpus runs out' : 'Corpus lasts full retirement', wd.dep ? `Age ${wd.dep}` : `Till age ${retireAge + ryr}`, wd.dep ? 'text-rose-400' : 'text-emerald-400']].map(([l, v, c]: any) => (
-                  <div key={l} className="flex justify-between items-center py-4 last:border-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div key={l} className="flex justify-between items-center py-4 last:border-0" style={{ borderBottom: '1px solid var(--divider)' }}>
                     <span className="text-slate-400 text-sm">{l}</span><span className={`text-2xl font-black ${c}`}>{v}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-5 p-4 rounded-xl text-sm text-slate-300" style={{ background: 'rgba(255,255,255,0.03)' }}><strong className="text-amber-300">Why 8% inflation?</strong> 6% general + 2% lifestyle creep. Healthcare at 10% — the silent retirement killer.</div>
+              <div className="mt-5 p-4 rounded-xl text-sm text-slate-300" style={{ background: 'var(--surface-alt)' }}><strong className="text-amber-300">Why 8% inflation?</strong> 6% general + 2% lifestyle creep. Healthcare at 10% — the silent retirement killer.</div>
             </GlassCard>
           </FadeUp>
         </div>
@@ -739,6 +768,7 @@ function LSCalc({ exp, setExp }: any) {
   const [wInflationOn, setWInflationOn] = useState(true), [wInflation, setWInflation] = useState(6);
   const [cExp, setCExp] = useState<any>(null);
   const INF = 8, HINF = 10;
+  const C = makeChartColors(useChartTheme());
 
   const acc = useMemo(() => { const r = ret / 100; let c = ls, cn = ls; return Array.from({ length: yrs }, (_, i) => { c = c * (1 + r) + (tuOn ? tu : 0); cn = cn * (1 + r); return { age: age + i + 1, corpus: Math.round(c), cn: Math.round(cn) }; }); }, [ls, tu, tuOn, ret, yrs, age]);
   const fc = acc[acc.length - 1]?.corpus || 0, fcn = acc[acc.length - 1]?.cn || 0;
@@ -789,10 +819,10 @@ function LSCalc({ exp, setExp }: any) {
             <Slider label="Retirement Yrs" value={ryr} onChange={setRyr} min={15} max={60} step={1} suffix=" yrs" />
             <Slider label="Monthly Expenses Now" value={exp} onChange={setExp} min={10000} max={300000} step={5000} prefix="₹" format={fmt} />
           </div>
-          <div className="mt-5 pt-5 flex flex-wrap gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="mt-5 pt-5 flex flex-wrap gap-3" style={{ borderTop: '1px solid var(--border)' }}>
             <motion.button onClick={() => setTuOn(!tuOn)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               className={`px-4 py-2 rounded-lg text-sm border transition ${tuOn ? 'text-violet-300' : 'text-slate-500'}`}
-              style={tuOn ? { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)' } : { border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={tuOn ? { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)' } : { border: '1px solid var(--border)' }}>
               {tuOn ? '✓ Annual Top-up ON' : 'Annual Top-up OFF'}
             </motion.button>
           </div>
@@ -825,11 +855,11 @@ function LSCalc({ exp, setExp }: any) {
                 <linearGradient id="lsg1" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.35} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
                 <linearGradient id="lsg2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#334155" stopOpacity={0.25} /><stop offset="95%" stopColor="#334155" stopOpacity={0} /></linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="age" stroke="#334155" tick={{ fontSize: 11, fill: '#475569' }} />
-              <YAxis stroke="#334155" tickFormatter={tickFmt} tick={{ fontSize: 11, fill: '#475569' }} width={52} />
-              <Tooltip {...TT} />
-              <Area type="monotone" dataKey="cn" stroke="#334155" strokeWidth={1.5} fill="url(#lsg2)" name="No top-up" />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="age" stroke={C.axis} tick={{ fontSize: 11, fill: C.tick }} />
+              <YAxis stroke={C.axis} tickFormatter={tickFmt} tick={{ fontSize: 11, fill: C.tick }} width={52} />
+              <Tooltip {...C.TT} />
+              <Area type="monotone" dataKey="cn" stroke={C.axis} strokeWidth={1.5} fill="url(#lsg2)" name="No top-up" />
               <Area type="monotone" dataKey="corpus" stroke="#8b5cf6" strokeWidth={2.5} fill="url(#lsg1)" name="With top-up" />
             </AreaChart>
           </ResponsiveContainer>
@@ -851,10 +881,10 @@ function LSCalc({ exp, setExp }: any) {
           <ResponsiveContainer width="100%" height={400}>
             <AreaChart data={jrn}>
               <defs><linearGradient id="lsjg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.35} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="age" stroke="#334155" tick={{ fontSize: 11, fill: '#475569' }} />
-              <YAxis stroke="#334155" tickFormatter={tickFmt} tick={{ fontSize: 11, fill: '#475569' }} width={52} />
-              <Tooltip {...TT} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="age" stroke={C.axis} tick={{ fontSize: 11, fill: C.tick }} />
+              <YAxis stroke={C.axis} tickFormatter={tickFmt} tick={{ fontSize: 11, fill: C.tick }} width={52} />
+              <Tooltip {...C.TT} />
               <ReferenceLine x={age + yrs} stroke="#8b5cf6" strokeDasharray="4 4" label={{ value: 'Retire', fill: '#8b5cf6', fontSize: 11 }} />
               {wd.dep && <ReferenceLine x={wd.dep} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'Depleted', fill: '#ef4444', fontSize: 11 }} />}
               <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2.5} fill="url(#lsjg)" />
@@ -880,12 +910,12 @@ function LSCalc({ exp, setExp }: any) {
               <p className="text-xs uppercase tracking-widest text-slate-500 mb-5">The Bottom Line</p>
               <div className="flex flex-col flex-1">
                 {[['Starting monthly income', `₹${fmt(wd.mw)}`, 'text-sky-400'], ['Monthly expenses (inflated)', `₹${fmt(iExp.total)}`, 'text-white'], [wd.dep ? 'Corpus runs out' : 'Corpus lasts full retirement', wd.dep ? `Age ${wd.dep}` : `Till age ${retireAge + ryr}`, wd.dep ? 'text-rose-400' : 'text-emerald-400']].map(([l, v, c]: any) => (
-                  <div key={l} className="flex justify-between items-center py-4 last:border-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div key={l} className="flex justify-between items-center py-4 last:border-0" style={{ borderBottom: '1px solid var(--divider)' }}>
                     <span className="text-slate-400 text-sm">{l}</span><span className={`text-2xl font-black ${c}`}>{v}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-5 p-4 rounded-xl text-sm text-slate-300" style={{ background: 'rgba(255,255,255,0.03)' }}><strong className="text-amber-300">Why 8% inflation?</strong> 6% general + 2% lifestyle creep. Healthcare at 10% — the silent retirement killer.</div>
+              <div className="mt-5 p-4 rounded-xl text-sm text-slate-300" style={{ background: 'var(--surface-alt)' }}><strong className="text-amber-300">Why 8% inflation?</strong> 6% general + 2% lifestyle creep. Healthcare at 10% — the silent retirement killer.</div>
             </GlassCard>
           </FadeUp>
         </div>
@@ -895,17 +925,10 @@ function LSCalc({ exp, setExp }: any) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    const stored = window.localStorage.getItem('angel_theme');
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  });
-
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem('angel_theme', theme);
-  }, [theme]);
+    document.documentElement.removeAttribute('data-theme');
+    window.localStorage.removeItem('angel_theme');
+  }, []);
 
   const location = useLocation();
   const isSip = location.pathname === '/sip';
@@ -937,7 +960,7 @@ export default function App() {
   ];
 
   return (
-    <div className={`min-h-screen w-full ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`} style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Inter',system-ui,-apple-system,sans-serif" }}>
+    <div className="min-h-screen w-full text-slate-100" style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Inter',system-ui,-apple-system,sans-serif" }}>
 
       {/* Toast */}
       <div id="call-toast" style={{ display: 'none', background: 'linear-gradient(135deg,#059669,#047857)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
@@ -979,29 +1002,6 @@ export default function App() {
             </NavLink>
           </div>
           <div className="flex items-center gap-3">
-            <label className="cosmic-toggle" aria-label="Toggle theme">
-              <input className="toggle" type="checkbox"
-                checked={theme === 'light'}
-                onChange={e => setTheme(e.target.checked ? 'light' : 'dark')} />
-              <div className="slider">
-                <div className="cosmos"></div>
-                <div className="energy-line"></div>
-                <div className="energy-line"></div>
-                <div className="energy-line"></div>
-                <div className="toggle-orb">
-                  <div className="inner-orb"></div>
-                  <div className="ring"></div>
-                </div>
-                <div className="particles">
-                  <div style={{ '--angle': '30deg' } as React.CSSProperties} className="particle"></div>
-                  <div style={{ '--angle': '60deg' } as React.CSSProperties} className="particle"></div>
-                  <div style={{ '--angle': '90deg' } as React.CSSProperties} className="particle"></div>
-                  <div style={{ '--angle': '120deg' } as React.CSSProperties} className="particle"></div>
-                  <div style={{ '--angle': '150deg' } as React.CSSProperties} className="particle"></div>
-                  <div style={{ '--angle': '180deg' } as React.CSSProperties} className="particle"></div>
-                </div>
-              </div>
-            </label>
             <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
               style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
@@ -1054,7 +1054,7 @@ export default function App() {
             </Link>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-wrap items-center justify-center gap-8 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            className="flex flex-wrap items-center justify-center gap-8 pt-8" style={{ borderTop: '1px solid var(--section-border)' }}>
             {[
               [<Youtube className="w-4 h-4 text-rose-500" />, '5L+ Subscribers'],
               [<div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}</div>, 'Top-rated'],
@@ -1077,7 +1077,7 @@ export default function App() {
 
       {/* Consultation */}
       {!isSip && !isLS && (
-      <section className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(180deg,#060b14 0%,#061410 50%,#060b14 100%)' }}>
+      <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', borderBottom: '1px solid var(--section-border)', background: 'var(--bg)' }}>
         <div className="max-w-4xl mx-auto px-6 py-24">
           <FadeUp className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-6"
@@ -1091,9 +1091,9 @@ export default function App() {
           {!done ? (
             <FadeUp delay={0.15}>
               <GlassCard>
-                <div className="grid grid-cols-3 gap-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="grid grid-cols-3 gap-0" style={{ borderBottom: '1px solid var(--border)' }}>
                   {[{ n: '01', t: 'Fill this form', d: '30 seconds. Name & number only.' }, { n: '02', t: 'We call within 24hrs', d: 'Our expert reviews your numbers first.' }, { n: '03', t: 'Get your plan', d: 'Clear next steps. No sales pressure.' }].map((s, i) => (
-                    <div key={s.n} className="p-5 text-center" style={{ borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                    <div key={s.n} className="p-5 text-center" style={{ borderRight: i < 2 ? '1px solid var(--border)' : 'none' }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black mx-auto mb-3"
                         style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#07090f', boxShadow: '0 4px 12px rgba(245,158,11,0.35)' }}>{s.n}</div>
                       <p className="text-sm font-bold text-white mb-1">{s.t}</p>
@@ -1117,14 +1117,14 @@ export default function App() {
                       ].map(opt => (
                         <motion.button key={opt.v} onClick={() => setFd({ ...fd, cap: opt.v })}
                           className="text-left p-4 rounded-xl border transition"
-                          style={{ background: fd.cap === opt.v ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.02)', border: fd.cap === opt.v ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(255,255,255,0.06)', boxShadow: fd.cap === opt.v ? '0 0 20px rgba(245,158,11,0.08)' : 'none' }}
+                          style={{ background: fd.cap === opt.v ? 'rgba(245,158,11,0.08)' : 'var(--surface-alt)', border: fd.cap === opt.v ? '1px solid rgba(245,158,11,0.4)' : '1px solid var(--border)', boxShadow: fd.cap === opt.v ? '0 0 20px rgba(245,158,11,0.08)' : 'none' }}
                           whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <div className="flex items-start gap-3">
                             <div className="w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition"
                               style={{ borderColor: fd.cap === opt.v ? '#f59e0b' : '#374151' }}>
                               {fd.cap === opt.v && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />}
                             </div>
-                            <div><p className="text-sm font-semibold" style={{ color: fd.cap === opt.v ? '#f59e0b' : '#f9fafb' }}>{opt.l}</p><p className="text-xs text-slate-500 mt-0.5">{opt.d}</p></div>
+                            <div><p className="text-sm font-semibold" style={{ color: fd.cap === opt.v ? 'var(--primary)' : 'var(--text)' }}>{opt.l}</p><p className="text-xs text-slate-500 mt-0.5">{opt.d}</p></div>
                           </div>
                         </motion.button>
                       ))}
@@ -1140,7 +1140,7 @@ export default function App() {
                     <div className="flex -space-x-2">
                       {['RK', 'MS', 'AP', 'VN'].map(i => (
                         <div key={i} className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-slate-900 border-2"
-                          style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', borderColor: '#0a1628' }}>{i}</div>
+                          style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', borderColor: 'var(--bg)' }}>{i}</div>
                       ))}
                     </div>
                     <p className="text-xs text-slate-500">10,000+ investors already consulted</p>
@@ -1177,7 +1177,7 @@ export default function App() {
         <div className="flex flex-col gap-2">
           {faqs.map((f, i) => (
             <FadeUp key={i} delay={i * 0.04}>
-              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--faq-border)', background: 'var(--faq-bg)' }}>
                 <button onClick={() => setFaq(faq === i ? null : i)}
                   className="w-full px-6 py-4 flex items-center justify-between text-left transition hover:bg-white/[0.02]">
                   <span className="font-semibold pr-4 text-slate-100">{f.q}</span>
@@ -1189,7 +1189,7 @@ export default function App() {
                   {faq === i && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease }}
-                      className="overflow-hidden" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      className="overflow-hidden" style={{ borderTop: '1px solid var(--divider)' }}>
                       <p className="px-6 py-5 text-sm text-slate-400 leading-relaxed">{f.a}</p>
                     </motion.div>
                   )}
@@ -1202,7 +1202,7 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: '#060b14' }}>
+      <footer className="w-full" style={{ borderTop: '1px solid var(--footer-border)', background: 'var(--footer-bg)' }}>
         <div className="max-w-7xl mx-auto px-6 py-14">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
             <div>
@@ -1231,7 +1231,7 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">This calculator is for illustrative and educational purposes only. Angel Investments is an AMFI-registered Mutual Fund Distributor. We deal exclusively in SEBI regulated investment products — Mutual Funds, Portfolio Management Services (PMS), Alternative Investment Funds (AIF), and GIFT City Funds. We are not SEBI-registered Investment Advisors and do not provide regulated investment advice. All investments are subject to market risk. Past performance is not indicative of future results. Please read all scheme-related documents carefully before investing.</p>
             </div>
           </div>
-          <div className="pt-6 text-center text-xs text-slate-700" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>© 2026 Angel Investments Content Studios. All rights reserved.</div>
+          <div className="pt-6 text-center text-xs text-slate-700" style={{ borderTop: '1px solid var(--divider)' }}>© 2026 Angel Investments Content Studios. All rights reserved.</div>
         </div>
       </footer>
     </div>
