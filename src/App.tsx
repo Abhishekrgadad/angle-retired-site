@@ -1473,36 +1473,168 @@ export default function App() {
 
       {/* FAQ */}
       {!isSip && !isLS && (
-      <section className="w-full px-4 sm:px-6 py-14 md:py-24">
-        <div className="max-w-4xl mx-auto">
-        <FadeUp className="text-center mb-12">
-          <h2 className="text-3xl font-black mb-2">Common Questions</h2>
-          <p className="text-slate-500">From our YouTube community</p>
-        </FadeUp>
-        <div className="flex flex-col gap-2">
-          {faqs.map((f, i) => (
-            <FadeUp key={i} delay={i * 0.04}>
-              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--faq-border)', background: 'var(--faq-bg)' }}>
-                <button onClick={() => setFaq(faq === i ? null : i)}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left transition hover:bg-white/[0.02]">
-                  <span className="font-semibold pr-4 text-slate-100">{f.q}</span>
-                  <motion.div animate={{ rotate: faq === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                    <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                  </motion.div>
-                </button>
-                <AnimatePresence>
-                  {faq === i && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease }}
-                      className="overflow-hidden" style={{ borderTop: '1px solid var(--divider)' }}>
-                      <p className="px-6 py-5 text-sm text-slate-400 leading-relaxed">{f.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </FadeUp>
+      <section className="w-full px-4 sm:px-6 py-14 md:py-24 relative overflow-hidden">
+
+        {/* Floating background decoration */}
+        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+          {[
+            { text: '?', x: '8%',  y: '12%', size: 180, delay: 0 },
+            { text: '?', x: '78%', y: '5%',  size: 240, delay: 1.8 },
+            { text: '?', x: '55%', y: '60%', size: 160, delay: 0.9 },
+          ].map((d, i) => (
+            <motion.div key={i}
+              animate={{ y: [0, -22, 0], opacity: [0.025, 0.055, 0.025] }}
+              transition={{ duration: 7 + i * 2, repeat: Infinity, ease: 'easeInOut', delay: d.delay }}
+              className="absolute font-black text-white leading-none"
+              style={{ left: d.x, top: d.y, fontSize: d.size }}>
+              {d.text}
+            </motion.div>
           ))}
+          {/* Ambient orb */}
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.06, 0.1, 0.06] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', top: '20%', left: '50%', transform: 'translateX(-50%)',
+              background: 'radial-gradient(circle, rgba(245,158,11,0.12) 0%, transparent 70%)' }} />
         </div>
+
+        <div className="max-w-4xl mx-auto relative z-10">
+
+          {/* Section header */}
+          <FadeUp className="text-center mb-14">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }} transition={{ duration: 0.5, ease }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-5"
+              style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <Sparkles className="w-3.5 h-3.5" /> From our YouTube community
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1, ease }}
+              className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 leading-tight">
+              Common{' '}
+              <span style={{ background: 'linear-gradient(135deg,#f59e0b,#fcd34d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Questions
+              </span>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2, ease }}
+              className="text-slate-500 max-w-md mx-auto">
+              {faqs.length} questions answered — from investors just like you.
+            </motion.p>
+          </FadeUp>
+
+          {/* FAQ items */}
+          <div className="flex flex-col gap-3">
+            {faqs.map((f, i) => {
+              const isOpen = faq === i;
+              return (
+                <motion.div key={i}
+                  initial={{ opacity: 0, x: -32 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.45, delay: i * 0.05, ease }}
+                  whileHover={{ y: isOpen ? 0 : -2 }}
+                >
+                  <div className="relative rounded-2xl overflow-hidden"
+                    style={{
+                      border: `1px solid ${isOpen ? 'rgba(245,158,11,0.32)' : 'var(--faq-border)'}`,
+                      background: isOpen ? 'rgba(245,158,11,0.04)' : 'var(--faq-bg)',
+                      boxShadow: isOpen ? '0 0 32px rgba(245,158,11,0.07), 0 4px 20px rgba(0,0,0,0.2)' : '0 2px 12px rgba(0,0,0,0.12)',
+                      transition: 'border-color 0.35s ease, background 0.35s ease, box-shadow 0.35s ease',
+                    }}>
+
+                    {/* Active left accent bar */}
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ scaleY: 0, opacity: 0 }} animate={{ scaleY: 1, opacity: 1 }} exit={{ scaleY: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease }}
+                          className="absolute left-0 top-0 bottom-0 w-[3px] origin-top rounded-r-full"
+                          style={{ background: 'linear-gradient(to bottom, #f59e0b, #d97706)' }} />
+                      )}
+                    </AnimatePresence>
+
+                    {/* Question row */}
+                    <button onClick={() => setFaq(isOpen ? null : i)}
+                      className="w-full px-5 py-4 flex items-center gap-4 text-left group">
+
+                      {/* Number badge */}
+                      <motion.div
+                        animate={{
+                          background: isOpen ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'rgba(255,255,255,0.05)',
+                          scale: isOpen ? 1.08 : 1,
+                        }}
+                        transition={{ duration: 0.3 }}
+                        className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-black"
+                        style={{ color: isOpen ? '#07090f' : '#475569', boxShadow: isOpen ? '0 0 14px rgba(245,158,11,0.35)' : 'none' }}>
+                        {String(i + 1).padStart(2, '0')}
+                      </motion.div>
+
+                      <span className="flex-1 font-semibold text-sm sm:text-base pr-2 leading-snug"
+                        style={{ color: isOpen ? '#f9fafb' : '#cbd5e1' }}>
+                        {f.q}
+                      </span>
+
+                      {/* Chevron */}
+                      <motion.div
+                        animate={{ rotate: isOpen ? 180 : 0, color: isOpen ? '#f59e0b' : '#475569' }}
+                        transition={{ duration: 0.3, ease }}
+                        className="flex-shrink-0">
+                        <ChevronDown className="w-4 h-4" />
+                      </motion.div>
+                    </button>
+
+                    {/* Answer */}
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.35, ease }}
+                          className="overflow-hidden"
+                          style={{ borderTop: '1px solid rgba(245,158,11,0.1)' }}>
+                          <motion.p
+                            initial={{ y: -8, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -8, opacity: 0 }}
+                            transition={{ duration: 0.28, delay: 0.08 }}
+                            className="px-5 pt-4 pb-5 text-sm text-slate-400 leading-relaxed"
+                            style={{ paddingLeft: '4.25rem' }}>
+                            {f.a}
+                          </motion.p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Bottom CTA strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.2, ease }}
+            className="mt-10 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+            style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }}>
+            <div>
+              <p className="font-bold text-white mb-1">Still have questions?</p>
+              <p className="text-sm text-slate-400">Our advisors answer within 24 hours — no jargon, no pressure.</p>
+            </div>
+            <motion.button
+              onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
+              whileHover={{ scale: 1.05, boxShadow: '0 8px 28px rgba(245,158,11,0.45)' }}
+              whileTap={{ scale: 0.97 }}
+              className="flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm text-slate-900 whitespace-nowrap"
+              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}>
+              <Phone className="w-4 h-4" /> Call Us Free
+            </motion.button>
+          </motion.div>
+
         </div>
       </section>
       )}
