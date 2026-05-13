@@ -458,6 +458,92 @@ function FormField({ icon, label, value, onChange, placeholder, type = 'text' }:
   );
 }
 
+function ConsultImageCard() {
+  const stats = [
+    { n: '10,000+', l: 'Investors Consulted', color: '#f59e0b', dur: 3.6 },
+    { n: '5L+',     l: 'YouTube Subscribers', color: '#ef4444', dur: 4.3 },
+    { n: '100%',    l: 'SEBI Regulated Products', color: '#10b981', dur: 3.9 },
+    { n: '24 hr',   l: 'Callback Guarantee',  color: '#8b5cf6', dur: 4.7 },
+  ];
+  return (
+    <div className="relative rounded-3xl overflow-hidden h-full flex flex-col"
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(28px) saturate(160%)',
+        border: '1px solid var(--card-border)',
+        boxShadow: '0 8px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+        minHeight: 480,
+      }}>
+
+      {/* Animated ambient orbs */}
+      <motion.div animate={{ y: [0, -24, 0], scale: [1, 1.12, 1] }} transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', top: '-15%', right: '-12%', pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(245,158,11,0.13) 0%, transparent 68%)' }} />
+      <motion.div animate={{ y: [0, 20, 0], scale: [1, 0.88, 1] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+        style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', bottom: '5%', left: '-10%', pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 68%)' }} />
+      <motion.div animate={{ y: [0, -14, 0], x: [0, 10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+        style={{ position: 'absolute', width: 180, height: 180, borderRadius: '50%', bottom: '30%', right: '5%', pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 68%)' }} />
+
+      {/* Top shimmer */}
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)' }} />
+
+      {/* Grid texture */}
+      <div className="absolute inset-0 opacity-30" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)',
+        backgroundSize: '40px 40px',
+      }} />
+
+      {/* Content */}
+      <div className="relative z-10 p-7 flex flex-col gap-7 flex-1">
+
+        {/* Logo block */}
+        <div className="flex flex-col items-center text-center pt-2">
+          <motion.div
+            animate={{ boxShadow: ['0 0 20px rgba(245,158,11,0.18)', '0 0 50px rgba(245,158,11,0.38)', '0 0 20px rgba(245,158,11,0.18)'] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+            className="rounded-2xl p-3 mb-4 flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+            <img src="/logo.png" alt="Angel Investments" className="w-16 h-16 object-contain" />
+          </motion.div>
+          <p className="font-black text-lg text-white tracking-wide">Angel Investments</p>
+          <p className="text-amber-400 text-xs italic mt-1">Learn to Earn</p>
+        </div>
+
+        {/* Floating stat pills */}
+        <div className="flex flex-col gap-3">
+          {stats.map((s, i) => (
+            <motion.div key={s.n}
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: s.dur, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+              className="flex items-center gap-4 rounded-xl px-4 py-3"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: `0 2px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)`,
+              }}>
+              <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ background: s.color, boxShadow: `0 0 10px ${s.color}80` }} />
+              <span className="text-xl font-black leading-none" style={{ color: s.color }}>{s.n}</span>
+              <span className="text-sm text-slate-400 leading-tight">{s.l}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Bottom quote */}
+        <div className="mt-auto rounded-2xl p-4"
+          style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.14)' }}>
+          <p className="text-sm text-slate-300 leading-relaxed italic">
+            "Plain language, no jargon, no pressure — just a clear plan built around <strong className="text-amber-300 not-italic">your numbers.</strong>"
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function showCallToast() {
   const el = document.getElementById('call-toast');
   if (el) { el.style.display = 'flex'; setTimeout(() => { el.style.display = 'none'; }, 3000); }
@@ -1282,7 +1368,9 @@ export default function App() {
       {/* Consultation */}
       {!isSip && !isLS && (
       <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', borderBottom: '1px solid var(--section-border)', background: 'var(--bg)' }}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-24">
+
+          {/* Section header */}
           <FadeUp className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-6"
               style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
@@ -1290,8 +1378,18 @@ export default function App() {
             </div>
             <h2 className="text-3xl md:text-5xl font-black mb-4">Numbers are great.<br /><span className="text-amber-400">A plan is better.</span></h2>
             <p className="text-slate-400 max-w-xl mx-auto">Tell us where you are. We'll tell you what to do next — in plain language, no jargon, no pressure.</p>
-            <p className="text-xs text-slate-600 mt-2">SEBI Regulated Products Only</p>
           </FadeUp>
+
+          {/* Two-column layout */}
+          <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+
+            {/* Left: Glassmorphism image card */}
+            <FadeUp className="lg:w-5/12">
+              <ConsultImageCard />
+            </FadeUp>
+
+            {/* Right: Form */}
+            <div className="lg:w-7/12">
           {!done ? (
             <FadeUp delay={0.15}>
               <GlassCard>
@@ -1305,14 +1403,14 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <div className="p-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="p-6 sm:p-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <FormField icon={<User className="w-4 h-4" />} label="Full Name" value={fd.name} onChange={(v: string) => setFd({ ...fd, name: v })} placeholder="Your name" />
                     <FormField icon={<Phone className="w-4 h-4" />} label="Contact Number" type="tel" value={fd.phone} onChange={(v: string) => setFd({ ...fd, phone: v })} placeholder="+91 98765 43210" />
                   </div>
                   <div className="mb-6">
                     <label className="text-xs uppercase tracking-widest text-slate-500 mb-3 block">Where are you in your investment journey?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {[
                         { v: 'starting', l: 'Just starting out', d: "Haven't invested yet or just started SIP" },
                         { v: 'sip-growing', l: 'Building via SIP', d: 'Regular SIP investor, want to optimise' },
@@ -1355,7 +1453,7 @@ export default function App() {
             </FadeUp>
           ) : (
             <FadeUp>
-              <div className="rounded-2xl p-12 text-center" style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', boxShadow: '0 0 60px rgba(16,185,129,0.06)' }}>
+              <div className="rounded-2xl p-12 text-center h-full flex flex-col items-center justify-center" style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', boxShadow: '0 0 60px rgba(16,185,129,0.06)' }}>
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
                   className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
                   style={{ background: 'rgba(16,185,129,0.15)', boxShadow: '0 0 30px rgba(16,185,129,0.2)' }}>
@@ -1367,6 +1465,8 @@ export default function App() {
               </div>
             </FadeUp>
           )}
+            </div>
+          </div>
         </div>
       </section>
       )}
