@@ -228,6 +228,145 @@ function PageContainer({ children }: { children: React.ReactNode }) {
   );
 }
 
+function CalcHeroSection({ mode }: { mode: 'sip' | 'lumpsum' }) {
+  const isSip = mode === 'sip';
+
+  const cfg = isSip ? {
+    badge: 'SIP Calculator',
+    headline: 'Build Wealth.',
+    headlineAccent: 'One Month at a Time.',
+    sub: 'Systematic Investment Plans with step-up, real Indian inflation adjustment, and full retirement withdrawal simulation.',
+    accent: '#f59e0b',
+    orb1: 'rgba(245,158,11,0.13)',
+    orb2: 'rgba(251,191,36,0.07)',
+    Icon: TrendingUp,
+    stats: [
+      { label: 'Starting SIP',        value: '₹5,000',  note: 'per month' },
+      { label: 'Corpus in 25 years',  value: '₹2.1 Cr', note: 'with 10% step-up at 12% p.a.', highlight: true },
+      { label: 'Wealth multiplier',   value: '17.5×',   note: 'money grown' },
+    ],
+  } : {
+    badge: 'Lumpsum Calculator',
+    headline: 'One Decision.',
+    headlineAccent: 'Decades of Returns.',
+    sub: 'Deploy a lumpsum today with annual top-ups, compounded annually, and see exactly how it funds your retirement.',
+    accent: '#8b5cf6',
+    orb1: 'rgba(139,92,246,0.13)',
+    orb2: 'rgba(167,139,250,0.07)',
+    Icon: Coins,
+    stats: [
+      { label: 'Lumpsum deployed',   value: '₹10L',   note: 'one-time investment' },
+      { label: 'Corpus in 20 years', value: '₹96L',   note: 'at 12% p.a. + top-ups', highlight: true },
+      { label: 'Wealth multiplier',  value: '9.6×',   note: 'money grown' },
+    ],
+  };
+
+  return (
+    <section className="relative w-full overflow-hidden" style={{ background: 'var(--bg)' }}>
+      {/* Ambient orbs */}
+      <motion.div animate={{ y: [0, -22, 0], scale: [1, 1.1, 1] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', width: 520, height: 520, borderRadius: '50%', top: '-25%', right: '-8%', pointerEvents: 'none',
+          background: `radial-gradient(circle, ${cfg.orb1} 0%, transparent 68%)` }} />
+      <motion.div animate={{ y: [0, 20, 0], scale: [1, 0.88, 1] }} transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        style={{ position: 'absolute', width: 380, height: 380, borderRadius: '50%', bottom: '-15%', left: '-6%', pointerEvents: 'none',
+          background: `radial-gradient(circle, ${cfg.orb2} 0%, transparent 68%)` }} />
+
+      {/* Grid texture */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px)',
+        backgroundSize: '48px 48px',
+      }} />
+
+      {/* Bottom fade to page bg */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, transparent, var(--bg))' }} />
+
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${cfg.accent}60, transparent)` }} />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+
+        {/* ── Left: text ── */}
+        <div className="flex-1 lg:max-w-[540px] flex flex-col gap-5">
+          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold self-start"
+            style={{ background: `${cfg.accent}18`, border: `1px solid ${cfg.accent}35`, color: cfg.accent }}>
+            <cfg.Icon className="w-3.5 h-3.5" /> {cfg.badge}
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease }}>
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.08] tracking-tight text-white">
+              {cfg.headline}
+            </h1>
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.1] tracking-tight"
+              style={{ background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent}bb)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              {cfg.headlineAccent}
+            </h1>
+          </motion.div>
+
+          <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2, ease }}
+            className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-[420px]">
+            {cfg.sub}
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35, ease }}
+            className="flex items-center gap-2 text-xs text-slate-600">
+            <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}>
+              <ArrowDown className="w-3.5 h-3.5" style={{ color: cfg.accent }} />
+            </motion.div>
+            Scroll down to start calculating
+          </motion.div>
+        </div>
+
+        {/* ── Right: stat cards ── */}
+        <div className="flex-1 w-full lg:max-w-[400px] flex flex-col gap-3">
+          {cfg.stats.map((s, i) => (
+            <motion.div key={s.label}
+              initial={{ opacity: 0, x: 36 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.55, delay: 0.2 + i * 0.1, ease }}
+              whileHover={{ y: -3, scale: 1.02 }}
+              className="rounded-2xl px-5 py-4 flex items-center gap-4 relative overflow-hidden"
+              style={{
+                background: s.highlight ? `${cfg.accent}0d` : 'var(--card-bg)',
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${s.highlight ? cfg.accent + '40' : 'var(--card-border)'}`,
+                boxShadow: s.highlight ? `0 0 32px ${cfg.accent}14, 0 4px 20px rgba(0,0,0,0.25)` : '0 2px 16px rgba(0,0,0,0.18)',
+              }}>
+              {/* shimmer line on highlighted card */}
+              {s.highlight && (
+                <div className="absolute top-0 left-0 right-0 h-px"
+                  style={{ background: `linear-gradient(90deg, transparent, ${cfg.accent}60, transparent)` }} />
+              )}
+              {/* color bar */}
+              <div className="w-1 h-10 rounded-full flex-shrink-0"
+                style={{ background: cfg.accent, opacity: s.highlight ? 1 : 0.35, boxShadow: s.highlight ? `0 0 12px ${cfg.accent}` : 'none' }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-500 mb-0.5 truncate">{s.label}</p>
+                <p className="text-2xl sm:text-3xl font-black leading-none tabular-nums"
+                  style={{ color: s.highlight ? cfg.accent : '#f9fafb' }}>
+                  {s.value}
+                </p>
+                <p className="text-[11px] text-slate-600 mt-1">{s.note}</p>
+              </div>
+              {s.highlight && (
+                <motion.div
+                  animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.15, 1] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${cfg.accent}20` }}>
+                  <cfg.Icon className="w-4 h-4" style={{ color: cfg.accent }} />
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
 function AppHeader() {
   const links = [
     { to: '/', label: 'Home' },
@@ -1360,9 +1499,12 @@ export default function App() {
       )}
 
       {(isSip || isLS) && (
-        <PageContainer>
-          {isSip ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
-        </PageContainer>
+        <>
+          <CalcHeroSection mode={isSip ? 'sip' : 'lumpsum'} />
+          <PageContainer>
+            {isSip ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
+          </PageContainer>
+        </>
       )}
 
       {/* Consultation */}
