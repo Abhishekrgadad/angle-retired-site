@@ -1360,13 +1360,13 @@ export default function App() {
 
       {/* Floating call */}
       <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-full text-white font-bold"
+        className="fixed bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-5 sm:py-3.5 rounded-full text-white font-bold"
         style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 8px 32px rgba(16,185,129,0.35)' }}
         whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(16,185,129,0.5)' }} whileTap={{ scale: 0.95 }}
         animate={{ boxShadow: ['0 0 0 0 rgba(16,185,129,0.5)', '0 0 0 14px rgba(16,185,129,0)', '0 0 0 0 rgba(16,185,129,0)'] }}
         transition={{ boxShadow: { duration: 2, repeat: Infinity }, scale: { type: 'spring', stiffness: 400 } }}>
-        <Phone className="w-4 h-4" />
-        <div className="leading-tight"><div className="text-[10px] opacity-70 font-normal">Call us free</div><div className="text-sm">90352 54332</div></div>
+        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <div className="leading-tight"><div className="hidden sm:block text-[10px] opacity-70 font-normal">Call us free</div><div className="text-xs sm:text-sm">90352 54332</div></div>
       </motion.button>
 
       {/* Nav */}
