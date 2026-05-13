@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, Phone, User, Zap, BarChart2 } from 'lucide-react';
+import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, Phone, User, Zap, BarChart2, Menu, X } from 'lucide-react';
 
 const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
 
@@ -65,7 +65,7 @@ function HeroOrbs() {
 
 function PageContainer({ children }: { children: React.ReactNode }) {
   return (
-    <section className="w-full px-6 py-24">
+    <section className="w-full px-4 sm:px-6 py-10 md:py-20">
       <div className="max-w-7xl mx-auto">{children}</div>
     </section>
   );
@@ -91,7 +91,7 @@ function AppHeader() {
         </Link>
         <div className="hidden md:flex items-center gap-8">
           {links.map(link => (
-            <NavLink key={link.to} to={link.to} className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+            <NavLink key={link.to} to={link.to} className={({ isActive }: { isActive: boolean }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
               {link.label}
             </NavLink>
           ))}
@@ -934,6 +934,7 @@ export default function App() {
   const isSip = location.pathname === '/sip';
   const isLS = location.pathname === '/lumpsum';
   const routeMode = isSip ? 'sip' : isLS ? 'lumpsum' : 'home';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [exp, setExp] = useState(40000), [faq, setFaq] = useState<number | null>(null), [done, setDone] = useState(false);
   const [fd, setFd] = useState({ name: '', phone: '', cap: '' });
 
@@ -982,40 +983,74 @@ export default function App() {
       {/* Nav */}
       <motion.nav className="sticky top-0 z-40 w-full" initial={{ y: -80 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }}
         style={{ borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px) saturate(160%)', background: 'var(--bg-soft)' }}>
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Angel Investments" className="w-14 h-14 object-contain flex-shrink-0" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0" onClick={() => setMobileMenuOpen(false)}>
+            <img src="/logo.png" alt="Angel Investments" className="w-11 h-11 object-contain flex-shrink-0" />
             <div className="flex flex-col" style={{ paddingTop: '4px' }}>
               <p className="font-bold text-sm leading-none text-white tracking-wide">Angel Investments</p>
               <p className="text-[10px] text-amber-400 italic mt-1.5 leading-none">Learn to Earn</p>
             </div>
-          </div>
+          </Link>
+
+          {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            <NavLink to="/" className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
-              Home
-            </NavLink>
-            <NavLink to="/sip" className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
-              SIP Plan
-            </NavLink>
-            <NavLink to="/lumpsum" className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
-              Lumpsum Plan
-            </NavLink>
+            {[['/', 'Home'], ['/sip', 'SIP Plan'], ['/lumpsum', 'Lumpsum Plan']].map(([to, label]) => (
+              <NavLink key={to} to={to} className={({ isActive }: { isActive: boolean }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+                {label}
+              </NavLink>
+            ))}
           </div>
+
+          {/* Desktop CTA + mobile hamburger */}
           <div className="flex items-center gap-3">
             <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-slate-900"
               style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
               whileHover={{ scale: 1.05, boxShadow: '0 6px 24px rgba(245,158,11,0.45)' }} whileTap={{ scale: 0.97 }}>
               <Phone className="w-3.5 h-3.5" /> +91 90352 54332
             </motion.button>
+            <motion.button className="md:hidden p-2 rounded-lg text-slate-300"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setMobileMenuOpen(v => !v)}
+              aria-label="Toggle menu">
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </motion.button>
           </div>
         </div>
+
+        {/* Mobile drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.28, ease }}
+              className="md:hidden overflow-hidden"
+              style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-soft)', backdropFilter: 'blur(20px)' }}>
+              <div className="flex flex-col px-4 py-4 gap-1">
+                {[['/', 'Home'], ['/sip', 'SIP Plan'], ['/lumpsum', 'Lumpsum Plan']].map(([to, label]) => (
+                  <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }: { isActive: boolean }) => `px-3 py-3 rounded-xl text-sm font-medium transition ${isActive ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                    {label}
+                  </NavLink>
+                ))}
+                <div className="pt-3 mt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                  <button onClick={() => { setMobileMenuOpen(false); window.open('tel:+919035254332', '_self'); showCallToast(); }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-slate-900"
+                    style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+                    <Phone className="w-4 h-4" /> Call +91 90352 54332
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
       {(!isSip && !isLS) && (
       <>
         {/* Hero */}
-        <section className="relative w-full px-6 pt-24 pb-20 text-center overflow-hidden">
+        <section className="relative w-full px-4 sm:px-6 pt-20 sm:pt-24 pb-16 sm:pb-20 text-center overflow-hidden min-h-[calc(100vh-4rem)] flex flex-col justify-center">
           <video
             className="absolute inset-0 w-full h-full object-cover"
           src={HERO_VIDEO_URL}
@@ -1078,22 +1113,22 @@ export default function App() {
       {/* Consultation */}
       {!isSip && !isLS && (
       <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', borderBottom: '1px solid var(--section-border)', background: 'var(--bg)' }}>
-        <div className="max-w-4xl mx-auto px-6 py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 md:py-24">
           <FadeUp className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-6"
               style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
               <Calendar className="w-3.5 h-3.5" /> Free 1-on-1 Consultation
             </div>
-            <h2 className="text-4xl md:text-5xl font-black mb-4">Numbers are great.<br /><span className="text-amber-400">A plan is better.</span></h2>
+            <h2 className="text-3xl md:text-5xl font-black mb-4">Numbers are great.<br /><span className="text-amber-400">A plan is better.</span></h2>
             <p className="text-slate-400 max-w-xl mx-auto">Tell us where you are. We'll tell you what to do next — in plain language, no jargon, no pressure.</p>
             <p className="text-xs text-slate-600 mt-2">SEBI Regulated Products Only</p>
           </FadeUp>
           {!done ? (
             <FadeUp delay={0.15}>
               <GlassCard>
-                <div className="grid grid-cols-3 gap-0" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-3" style={{ borderBottom: '1px solid var(--border)' }}>
                   {[{ n: '01', t: 'Fill this form', d: '30 seconds. Name & number only.' }, { n: '02', t: 'We call within 24hrs', d: 'Our expert reviews your numbers first.' }, { n: '03', t: 'Get your plan', d: 'Clear next steps. No sales pressure.' }].map((s, i) => (
-                    <div key={s.n} className="p-5 text-center" style={{ borderRight: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                    <div key={s.n} className="p-5 text-center" style={{ borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black mx-auto mb-3"
                         style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#07090f', boxShadow: '0 4px 12px rgba(245,158,11,0.35)' }}>{s.n}</div>
                       <p className="text-sm font-bold text-white mb-1">{s.t}</p>
@@ -1169,7 +1204,8 @@ export default function App() {
 
       {/* FAQ */}
       {!isSip && !isLS && (
-      <section className="w-full px-6 py-24">
+      <section className="w-full px-4 sm:px-6 py-14 md:py-24">
+        <div className="max-w-4xl mx-auto">
         <FadeUp className="text-center mb-12">
           <h2 className="text-3xl font-black mb-2">Common Questions</h2>
           <p className="text-slate-500">From our YouTube community</p>
@@ -1198,13 +1234,14 @@ export default function App() {
             </FadeUp>
           ))}
         </div>
+        </div>
       </section>
       )}
 
       {/* Footer */}
       <footer className="w-full" style={{ borderTop: '1px solid var(--footer-border)', background: 'var(--footer-bg)' }}>
-        <div className="max-w-7xl mx-auto px-6 py-14">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-10 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <img src="/logo.png" alt="Angel Investments" className="w-11 h-11 object-contain flex-shrink-0" />
