@@ -63,6 +63,163 @@ function HeroOrbs() {
   );
 }
 
+const CAROUSEL_SLIDES = [
+  {
+    type: 'stat' as const,
+    badge: 'SIP Calculator',
+    title: 'Will ₹5K/month fund your retirement?',
+    highlight: '₹2.1 Crore',
+    sub: 'corpus in 25 yrs with 10% annual step-up',
+    color: '#f59e0b',
+    icon: TrendingUp,
+  },
+  {
+    type: 'stat' as const,
+    badge: 'Lumpsum Plan',
+    title: 'Put your savings to serious work.',
+    highlight: '9.6×',
+    sub: '₹10L lumpsum → ₹96L in 20 years at 12% p.a.',
+    color: '#8b5cf6',
+    icon: Coins,
+  },
+  {
+    type: 'testimonial' as const,
+    name: 'Rahul K.',
+    role: 'Software Engineer, Bengaluru',
+    quote: 'Started SIP at 22. The step-up calculator showed exactly how much to increase each year. Hit ₹1 Cr before I turned 40.',
+    stars: 5,
+  },
+  {
+    type: 'testimonial' as const,
+    name: 'Meena S.',
+    role: 'Doctor, Hyderabad',
+    quote: 'The inflation calculator was a wake-up call — ₹40K today needs ₹1.8L at retirement. Doubled my SIP that same week.',
+    stars: 5,
+  },
+  {
+    type: 'testimonial' as const,
+    name: 'Arjun V.',
+    role: 'Teacher, Pune',
+    quote: "20 years of flat SIP and I thought I was fine. The withdrawal chart showed I'd run out at 72. Fixed it in time.",
+    stars: 5,
+  },
+];
+
+function HeroCarousel() {
+  const [idx, setIdx] = useState(0);
+  const [dir, setDir] = useState(1);
+  const total = CAROUSEL_SLIDES.length;
+
+  const go = (next: number) => {
+    setDir(next > idx ? 1 : -1);
+    setIdx((next + total) % total);
+  };
+
+  useEffect(() => {
+    const t = setInterval(() => go((idx + 1) % total), 4500);
+    return () => clearInterval(t);
+  }, [idx]);
+
+  const slide = CAROUSEL_SLIDES[idx];
+
+  return (
+    <div className="w-full flex flex-col gap-4 select-none">
+      <div className="relative overflow-hidden rounded-2xl" style={{ minHeight: 300 }}>
+        <AnimatePresence mode="wait" custom={dir}>
+          <motion.div
+            key={idx}
+            custom={dir}
+            initial={{ opacity: 0, x: dir * 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: dir * -60 }}
+            transition={{ duration: 0.42, ease }}
+            className="rounded-2xl p-7 flex flex-col gap-5"
+            style={{
+              background: 'var(--card-bg)',
+              backdropFilter: 'blur(24px) saturate(160%)',
+              border: '1px solid var(--card-border)',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)',
+            }}
+          >
+            {/* top shimmer line */}
+            <div className="absolute top-0 left-0 right-0 h-px rounded-t-2xl"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
+
+            {slide.type === 'stat' && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full"
+                    style={{ background: `${slide.color}18`, color: slide.color, border: `1px solid ${slide.color}30` }}>
+                    {slide.badge}
+                  </span>
+                  <slide.icon className="w-5 h-5" style={{ color: slide.color }} />
+                </div>
+                <p className="text-slate-300 text-sm leading-relaxed">{slide.title}</p>
+                <div>
+                  <p className="text-5xl font-black leading-none" style={{ color: slide.color }}>{slide.highlight}</p>
+                  <p className="text-slate-500 text-xs mt-2">{slide.sub}</p>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--track-bg)' }}>
+                  <motion.div className="h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: '78%' }}
+                    transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
+                    style={{ background: `linear-gradient(90deg, ${slide.color}99, ${slide.color})` }} />
+                </div>
+              </>
+            )}
+
+            {slide.type === 'testimonial' && (
+              <>
+                <div className="flex gap-0.5">
+                  {[...Array(slide.stars)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-slate-200 text-sm leading-relaxed flex-1">"{slide.quote}"</p>
+                <div className="flex items-center gap-3 pt-2" style={{ borderTop: '1px solid var(--divider)' }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-slate-900 flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+                    {slide.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{slide.name}</p>
+                    <p className="text-xs text-slate-500">{slide.role}</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex gap-1.5">
+          {CAROUSEL_SLIDES.map((_, i) => (
+            <button key={i} onClick={() => go(i)}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: i === idx ? 20 : 6, height: 6,
+                background: i === idx ? '#f59e0b' : 'rgba(255,255,255,0.15)',
+              }} />
+          ))}
+        </div>
+        <div className="flex gap-2">
+          {[-1, 1].map(d => (
+            <motion.button key={d} onClick={() => go(idx + d)}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.92 }}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <ChevronDown className="w-4 h-4 text-slate-400" style={{ transform: `rotate(${d === -1 ? 90 : -90}deg)` }} />
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PageContainer({ children }: { children: React.ReactNode }) {
   return (
     <section className="w-full px-4 sm:px-6 py-10 md:py-20">
@@ -1050,57 +1207,69 @@ export default function App() {
       {(!isSip && !isLS) && (
       <>
         {/* Hero */}
-        <section className="relative w-full px-4 sm:px-6 pt-20 sm:pt-24 pb-16 sm:pb-20 text-center overflow-hidden min-h-[calc(100vh-4rem)] flex flex-col justify-center">
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-          src={HERO_VIDEO_URL}
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{ filter: 'brightness(0.58) saturate(1.15)' }}
-        />
-        <div className="absolute inset-0 bg-slate-950/70" />
-        <HeroOrbs />
-        <div className="relative z-10 max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-8"
-            style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
-            <Sparkles className="w-3.5 h-3.5" /> Retirement Reality Check
-          </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease }}
-            className="text-4xl md:text-5xl lg:text-7xl font-black mb-6 leading-tight tracking-tight"
-            style={{ background: 'linear-gradient(135deg,#ffffff 30%,rgba(255,255,255,0.4))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Will your money last<br />as long as you do?
-          </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease }}
-            className="text-slate-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-            SIP or lumpsum — see if your retirement plan actually works. Adjusted for real Indian inflation, with withdrawal step-up. Takes 60 seconds.
-          </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3, ease }}
-            className="flex flex-wrap gap-4 justify-center mb-14">
-            <Link to="/sip" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-slate-900 text-sm"
-              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.4)' }}>
-              <Play className="w-4 h-4 fill-current" /> Check SIP Plan
-            </Link>
-            <Link to="/lumpsum" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-emerald-300 text-sm"
-              style={{ border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.05)' }}>
-              <Phone className="w-4 h-4" /> View Lumpsum Plan
-            </Link>
-          </motion.div>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-wrap items-center justify-center gap-8 pt-8" style={{ borderTop: '1px solid var(--section-border)' }}>
-            {[
-              [<Youtube className="w-4 h-4 text-rose-500" />, '5L+ Subscribers'],
-              [<div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}</div>, 'Top-rated'],
-              [<Shield className="w-4 h-4 text-emerald-500" />, 'SEBI Regulated Products']
-            ].map(([ico, txt]: any, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1, ease }}
-                className="flex items-center gap-2 text-sm text-slate-500">{ico}{txt}</motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+        <section className="relative w-full overflow-hidden min-h-[calc(100vh-4rem)] flex items-center">
+          {/* Video bg */}
+          <video className="absolute inset-0 w-full h-full object-cover"
+            src={HERO_VIDEO_URL} autoPlay loop muted playsInline
+            style={{ filter: 'brightness(0.45) saturate(1.1)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(6,11,20,0.85) 0%, rgba(6,11,20,0.6) 50%, rgba(6,11,20,0.75) 100%)' }} />
+          <HeroOrbs />
+
+          {/* Two-column content */}
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+
+            {/* ── Left: text ── */}
+            <div className="flex-1 lg:max-w-[520px] flex flex-col gap-6">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 self-start"
+                style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.22)' }}>
+                <Sparkles className="w-3.5 h-3.5" /> Retirement Reality Check
+              </motion.div>
+
+              <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.1, ease }}
+                className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight"
+                style={{ background: 'linear-gradient(135deg,#ffffff 40%,rgba(255,255,255,0.45))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Will your money last<br />as long as you do?
+              </motion.h1>
+
+              <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2, ease }}
+                className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-md">
+                SIP or lumpsum — see if your retirement plan actually works. Adjusted for real Indian inflation, with withdrawal step-up. Takes 60 seconds.
+              </motion.p>
+
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.3, ease }}
+                className="flex flex-wrap gap-3">
+                <Link to="/sip" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-slate-900 text-sm"
+                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 28px rgba(245,158,11,0.38)' }}>
+                  <Play className="w-4 h-4 fill-current" /> Check SIP Plan
+                </Link>
+                <Link to="/lumpsum" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-emerald-300 text-sm"
+                  style={{ border: '1px solid rgba(16,185,129,0.28)', background: 'rgba(16,185,129,0.06)' }}>
+                  <BarChart2 className="w-4 h-4" /> Lumpsum Plan
+                </Link>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45, ease }}
+                className="flex flex-wrap items-center gap-6 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                {[
+                  [<Youtube key="yt" className="w-4 h-4 text-rose-500" />, '5L+ Subscribers'],
+                  [<div key="stars" className="flex">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}</div>, 'Top-rated'],
+                  [<Shield key="sh" className="w-4 h-4 text-emerald-500" />, 'SEBI Regulated'],
+                ].map(([ico, txt]: any, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.08, ease }}
+                    className="flex items-center gap-2 text-sm text-slate-500">{ico}{txt}</motion.div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* ── Right: carousel ── */}
+            <motion.div className="flex-1 w-full lg:max-w-[440px]"
+              initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.25, ease }}>
+              <HeroCarousel />
+            </motion.div>
+
+          </div>
+        </section>
       </>
       )}
 
