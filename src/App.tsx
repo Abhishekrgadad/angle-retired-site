@@ -36,7 +36,7 @@ function makeChartColors(isDark: boolean) {
   };
 }
 
-const ease = [0.21, 0.47, 0.32, 0.98];
+const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 
 function FadeUp({ children, delay = 0, className = '' }: any) {
   const ref = useRef(null);
