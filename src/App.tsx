@@ -256,28 +256,31 @@ function CalcHeroSection({ mode, setMode }: { mode: 'sip' | 'lumpsum'; setMode: 
       <div className="absolute top-0 left-0 right-0 h-px"
         style={{ background: `linear-gradient(90deg, transparent, ${cfg.accent}60, transparent)` }} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center gap-10 lg:gap-16">
+
+        {/* Mode toggle — centered above content */}
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }}
+          className="flex items-center rounded-full p-1"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          {(['sip', 'lumpsum'] as const).map(m => (
+            <button key={m} onClick={() => setMode(m)}
+              className="relative px-8 py-2 rounded-full text-xs font-bold transition-colors min-w-[100px] text-center"
+              style={{ color: mode === m ? '#0a1322' : '#94a3b8' }}>
+              {mode === m && (
+                <motion.div layoutId="calc-mode-pill" className="absolute inset-0 rounded-full"
+                  style={{ background: m === 'sip' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#8b5cf6,#7c3aed)' }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }} />
+              )}
+              <span className="relative z-10">{m === 'sip' ? 'SIP' : 'Lumpsum'}</span>
+            </button>
+          ))}
+        </motion.div>
+
+        {/* ── Two-column: text + stats ── */}
+        <div className="w-full flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
         {/* ── Left: text ── */}
         <div className="flex-1 lg:max-w-[540px] flex flex-col gap-5">
-
-          {/* Mode toggle */}
-          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }}
-            className="inline-flex items-center self-start rounded-full p-1"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            {(['sip', 'lumpsum'] as const).map(m => (
-              <button key={m} onClick={() => setMode(m)}
-                className="relative px-4 py-1.5 rounded-full text-xs font-bold transition-colors"
-                style={{ color: mode === m ? '#0a1322' : '#94a3b8' }}>
-                {mode === m && (
-                  <motion.div layoutId="calc-mode-pill" className="absolute inset-0 rounded-full"
-                    style={{ background: m === 'sip' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#8b5cf6,#7c3aed)' }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }} />
-                )}
-                <span className="relative z-10">{m === 'sip' ? 'SIP' : 'Lumpsum'}</span>
-              </button>
-            ))}
-          </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease }}>
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.12] tracking-tight">
@@ -353,6 +356,7 @@ function CalcHeroSection({ mode, setMode }: { mode: 'sip' | 'lumpsum'; setMode: 
           ))}
         </div>
 
+        </div>{/* end two-column */}
       </div>
     </section>
   );
