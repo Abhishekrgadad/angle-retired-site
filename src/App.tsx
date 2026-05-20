@@ -2,7 +2,9 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, Phone, User, Zap, BarChart2, Menu, X } from 'lucide-react';
+import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, ChevronRight, Phone, User, Zap, BarChart2, Briefcase, Menu, X } from 'lucide-react';
+// @ts-ignore
+import LandingPage from './LandingPage.jsx';
 
 const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
 
@@ -106,42 +108,39 @@ const CAROUSEL_SLIDES = [
 ];
 
 function HeroCarousel() {
-  const [idx, setIdx] = useState(0);
-  const [dir, setDir] = useState(1);
-  const total = CAROUSEL_SLIDES.length;
-
-  const go = (next: number) => {
-    setDir(next > idx ? 1 : -1);
-    setIdx((next + total) % total);
-  };
-
-  useEffect(() => {
-    const t = setInterval(() => go((idx + 1) % total), 4500);
-    return () => clearInterval(t);
-  }, [idx]);
-
-  const slide = CAROUSEL_SLIDES[idx];
-
+  const slides = [...CAROUSEL_SLIDES, ...CAROUSEL_SLIDES];
   return (
-    <div className="w-full flex flex-col gap-4 select-none">
-      <div className="relative overflow-hidden rounded-2xl" style={{ minHeight: 300 }}>
-        <AnimatePresence mode="wait" custom={dir}>
-          <motion.div
-            key={idx}
-            custom={dir}
-            initial={{ opacity: 0, x: dir * 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: dir * -60 }}
-            transition={{ duration: 0.42, ease }}
-            className="rounded-2xl p-7 flex flex-col gap-5"
+    <div className="carousel-wrap w-full select-none relative overflow-hidden">
+      <style>{`
+        @keyframes scrollUp   { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+        @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .carousel-wrap {
+          height: 340px;
+          mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+          -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+        }
+        .carousel-scroll { display: flex; flex-direction: column; gap: 16px; animation: scrollUp 22s linear infinite; }
+        .carousel-card   { width: 100%; flex-shrink: 0; }
+        .carousel-scroll:hover { animation-play-state: paused; }
+        @media (min-width: 1024px) {
+          .carousel-wrap {
+            height: 230px;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+          }
+          .carousel-scroll { flex-direction: row; animation: scrollLeft 28s linear infinite; }
+          .carousel-card   { min-width: 260px; width: 260px; }
+        }
+      `}</style>
+      <div className="carousel-scroll">
+        {slides.map((slide, i) => (
+          <div key={i} className="carousel-card rounded-2xl p-7 flex flex-col gap-5 relative"
             style={{
               background: 'var(--card-bg)',
               backdropFilter: 'blur(24px) saturate(160%)',
               border: '1px solid var(--card-border)',
               boxShadow: '0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)',
-            }}
-          >
-            {/* top shimmer line */}
+            }}>
             <div className="absolute top-0 left-0 right-0 h-px rounded-t-2xl"
               style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
 
@@ -160,11 +159,7 @@ function HeroCarousel() {
                   <p className="text-slate-500 text-xs mt-2">{slide.sub}</p>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--track-bg)' }}>
-                  <motion.div className="h-full rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: '78%' }}
-                    transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
-                    style={{ background: `linear-gradient(90deg, ${slide.color}99, ${slide.color})` }} />
+                  <div className="h-full rounded-full" style={{ width: '78%', background: `linear-gradient(90deg, ${slide.color}99, ${slide.color})` }} />
                 </div>
               </>
             )}
@@ -172,8 +167,8 @@ function HeroCarousel() {
             {slide.type === 'testimonial' && (
               <>
                 <div className="flex gap-0.5">
-                  {[...Array(slide.stars)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  {[...Array(slide.stars)].map((_, j) => (
+                    <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
                 <p className="text-slate-200 text-sm leading-relaxed flex-1">"{slide.quote}"</p>
@@ -189,32 +184,8 @@ function HeroCarousel() {
                 </div>
               </>
             )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex gap-1.5">
-          {CAROUSEL_SLIDES.map((_, i) => (
-            <button key={i} onClick={() => go(i)}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: i === idx ? 20 : 6, height: 6,
-                background: i === idx ? '#f59e0b' : 'rgba(255,255,255,0.15)',
-              }} />
-          ))}
-        </div>
-        <div className="flex gap-2">
-          {[-1, 1].map(d => (
-            <motion.button key={d} onClick={() => go(idx + d)}
-              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.92 }}
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-              <ChevronDown className="w-4 h-4 text-slate-400" style={{ transform: `rotate(${d === -1 ? 90 : -90}deg)` }} />
-            </motion.button>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -228,7 +199,7 @@ function PageContainer({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CalcHeroSection({ mode }: { mode: 'sip' | 'lumpsum' }) {
+function CalcHeroSection({ mode, setMode }: { mode: 'sip' | 'lumpsum'; setMode: (m: 'sip' | 'lumpsum') => void }) {
   const isSip = mode === 'sip';
 
   const cfg = isSip ? {
@@ -289,10 +260,23 @@ function CalcHeroSection({ mode }: { mode: 'sip' | 'lumpsum' }) {
 
         {/* ── Left: text ── */}
         <div className="flex-1 lg:max-w-[540px] flex flex-col gap-5">
+
+          {/* Mode toggle */}
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold self-start"
-            style={{ background: `${cfg.accent}18`, border: `1px solid ${cfg.accent}35`, color: cfg.accent }}>
-            <cfg.Icon className="w-3.5 h-3.5" /> {cfg.badge}
+            className="inline-flex items-center self-start rounded-full p-1"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            {(['sip', 'lumpsum'] as const).map(m => (
+              <button key={m} onClick={() => setMode(m)}
+                className="relative px-4 py-1.5 rounded-full text-xs font-bold transition-colors"
+                style={{ color: mode === m ? '#0a1322' : '#94a3b8' }}>
+                {mode === m && (
+                  <motion.div layoutId="calc-mode-pill" className="absolute inset-0 rounded-full"
+                    style={{ background: m === 'sip' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#8b5cf6,#7c3aed)' }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }} />
+                )}
+                <span className="relative z-10">{m === 'sip' ? 'SIP' : 'Lumpsum'}</span>
+              </button>
+            ))}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease }}>
@@ -377,8 +361,7 @@ function CalcHeroSection({ mode }: { mode: 'sip' | 'lumpsum' }) {
 function AppHeader() {
   const links = [
     { to: '/', label: 'Home' },
-    { to: '/sip', label: 'SIP Plan' },
-    { to: '/lumpsum', label: 'Lumpsum Plan' },
+    { to: '/calculator', label: 'Retirement Calculator' },
   ];
 
   return (
@@ -399,7 +382,7 @@ function AppHeader() {
             </NavLink>
           ))}
         </div>
-        <Link to="/sip" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
+        <Link to="/calculator" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900"
           style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}>
           <Phone className="w-3.5 h-3.5" /> Get Started
         </Link>
@@ -409,45 +392,412 @@ function AppHeader() {
 }
 
 function HomePage() {
+  const [heroFd, setHeroFd] = useState({ phone: '', city: '', cap: '' });
+  const [heroDone, setHeroDone] = useState(false);
+
+  const heroJourneys = [
+    { v: 'starting',    l: 'Just starting out',                        d: "Haven't invested yet or new to SIP" },
+    { v: 'sip-running', l: 'Have SIPs running',                       d: 'Want to add more or explore options' },
+    { v: 'stocks',      l: 'Want to build a proper stock portfolio',   d: 'I have stocks in my Demat' },
+    { v: 'pms',         l: 'Looking for PMS / AIF access',            d: '' },
+  ];
+
+  const heroSubmit = () => {
+    if (!heroFd.phone) return;
+    const lead = { ...heroFd, source: 'hero-form', timestamp: new Date().toISOString() };
+    const existing = JSON.parse(sessionStorage.getItem('angel_leads') || '[]');
+    existing.push(lead);
+    sessionStorage.setItem('angel_leads', JSON.stringify(existing));
+    setHeroDone(true);
+  };
+
   return (
-    <section className="relative w-full px-6 pt-24 pb-20 text-center overflow-hidden">
-      <video
-        className="absolute inset-0 w-full h-full object-cover"
-        src={HERO_VIDEO_URL}
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{ filter: 'brightness(0.58) saturate(1.15)' }}
-      />
-      <div className="absolute inset-0 bg-slate-950/70" />
+    <section className="relative w-full overflow-hidden" style={{ background: 'var(--bg)' }}>
       <HeroOrbs />
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-8"
-          style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
-          <Sparkles className="w-3.5 h-3.5" /> Retirement Reality Check
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+
+        {/* ── Left: lead form card (first on mobile too) ── */}
+        <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.15, ease }}>
+          <GlassCard className="p-6 sm:p-8">
+            {!heroDone ? (
+              <>
+                <h2 className="text-lg font-black text-white mb-1">Start your investment journey</h2>
+                <p className="text-sm text-slate-500 mb-6">We'll call you — no spam, no pressure.</p>
+
+                {/* Journey selector */}
+                <div className="flex flex-col gap-2 mb-5">
+                  {heroJourneys.map(opt => (
+                    <motion.button key={opt.v} onClick={() => setHeroFd({ ...heroFd, cap: opt.v })}
+                      className="flex flex-col items-start w-full px-4 py-3 rounded-xl transition-all text-left"
+                      style={{
+                        background: heroFd.cap === opt.v ? 'rgba(245,158,11,0.08)' : 'var(--input-bg)',
+                        border: heroFd.cap === opt.v ? '1px solid rgba(245,158,11,0.45)' : '1.5px solid var(--border-strong)',
+                      }}
+                      whileTap={{ scale: 0.98 }}>
+                      <span className="text-sm font-semibold leading-snug" style={{ color: heroFd.cap === opt.v ? '#f59e0b' : 'var(--text)' }}>{opt.l}</span>
+                      {opt.d && <span className="text-xs text-slate-500 mt-0.5">{opt.d}</span>}
+                    </motion.button>
+                  ))}
+                </div>
+
+                {/* Phone input */}
+                <div className="mb-3">
+                  <label className="text-xs uppercase tracking-widest text-slate-500 mb-2 block">Mobile Number</label>
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: 'var(--input-bg)', border: '1.5px solid var(--input-border)' }}>
+                    <Phone className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                    <input
+                      type="tel"
+                      placeholder="Enter 10-digit mobile number"
+                      value={heroFd.phone}
+                      onChange={e => setHeroFd({ ...heroFd, phone: e.target.value })}
+                      className="flex-1 bg-transparent text-sm text-white placeholder-slate-600 outline-none"
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
+                {/* City input */}
+                <div className="mb-6">
+                  <label className="text-xs uppercase tracking-widest text-slate-500 mb-2 block">City</label>
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: 'var(--input-bg)', border: '1.5px solid var(--input-border)' }}>
+                    <Zap className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Your city (e.g. Bengaluru)"
+                      value={heroFd.city}
+                      onChange={e => setHeroFd({ ...heroFd, city: e.target.value })}
+                      className="flex-1 bg-transparent text-sm text-white placeholder-slate-600 outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <motion.button onClick={heroSubmit} disabled={!heroFd.phone}
+                  className="w-full py-4 rounded-xl font-black text-base text-slate-900 disabled:opacity-40 flex items-center justify-center gap-2 mb-3"
+                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.35)' }}
+                  whileHover={{ scale: 1.01, boxShadow: '0 12px 40px rgba(245,158,11,0.5)' }} whileTap={{ scale: 0.99 }}>
+                  <Phone className="w-4 h-4" /> Request a Call
+                </motion.button>
+
+                <p className="text-center text-xs text-slate-500 mb-1">
+                  Can't wait?{' '}
+                  <a href="tel:+919035254332" className="text-amber-400 hover:text-amber-300 font-semibold transition">
+                    Call us now →
+                  </a>
+                </p>
+                <p className="text-center text-xs text-slate-600">No spam. Your details are only used to schedule your call.</p>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
+                  className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(16,185,129,0.15)', boxShadow: '0 0 30px rgba(16,185,129,0.2)' }}>
+                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                </motion.div>
+                <h3 className="text-2xl font-black mb-2">We'll call you soon!</h3>
+                <p className="text-slate-400 text-sm">Our team will reach you within 24 hours. No spam, we promise.</p>
+              </div>
+            )}
+          </GlassCard>
         </motion.div>
-        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease }}
-          className="text-4xl md:text-5xl lg:text-7xl font-black mb-6 leading-tight tracking-tight"
-          style={{ background: 'linear-gradient(135deg,#ffffff 30%,rgba(255,255,255,0.4))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Will your money last<br />as long as you do?
-        </motion.h1>
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease }}
-          className="text-slate-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-          SIP or lumpsum — see if your retirement plan actually works. Adjusted for real Indian inflation, with withdrawal step-up. Takes 60 seconds.
-        </motion.p>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3, ease }}
-          className="flex flex-wrap gap-4 justify-center mb-14">
-          <Link to="/sip" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-slate-900 text-sm"
-            style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.4)' }}>
-            <Play className="w-4 h-4 fill-current" /> Check SIP Plan
-          </Link>
-          <Link to="/lumpsum" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-emerald-300 text-sm"
-            style={{ border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.05)' }}>
-            <Phone className="w-4 h-4" /> View Lumpsum Plan
-          </Link>
-        </motion.div>
+
+        {/* ── Right: brand copy ── */}
+        <div className="flex flex-col gap-7 pt-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 self-start"
+            style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.22)' }}>
+            <Sparkles className="w-3.5 h-3.5" /> 13+ years of market experience
+          </motion.div>
+
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.1, ease }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight">
+            <span style={{ background: 'linear-gradient(135deg,#ffffff 40%,rgba(255,255,255,0.55))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              We don't tell you what to buy.{' '}
+            </span>
+            <span style={{ background: 'linear-gradient(135deg,#f59e0b,#fcd34d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              We help you build a team.
+            </span>
+          </motion.h1>
+
+          <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2, ease }}
+            className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-lg">
+            40+ SEBI-regulated fund managers. Zero sales pitch. We stay with you through every market cycle.
+          </motion.p>
+
+          {/* Social proof stats */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.3, ease }}
+            className="grid grid-cols-3 gap-4 pt-2">
+            {[
+              { value: '5.4L+', label: 'Subscribers' },
+              { value: '10,000+', label: 'Investors' },
+              { value: '24hr', label: 'Callback' },
+            ].map((s, i) => (
+              <div key={i} className="flex flex-col items-center text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <span className="text-xl sm:text-2xl font-black text-amber-400 leading-tight">{s.value}</span>
+                <span className="text-[11px] text-slate-500 mt-1 leading-snug">{s.label}</span>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Trust badges */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45, ease }}
+            className="flex flex-wrap gap-3 pt-2">
+            {['AMFI Registered', 'SEBI Regulated', 'No Spam'].map((b, i) => (
+              <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-emerald-300"
+                style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.18)' }}>
+                <CheckCircle2 className="w-3 h-3" /> {b}
+              </span>
+            ))}
+          </motion.div>
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+function FoSection() {
+  return (
+    <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', background: 'var(--bg)' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-24">
+        <FadeUp className="text-center mb-12">
+          <p className="text-sm text-slate-500 mb-4">You've seen the ads.</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight">
+            <span className="line-through" style={{ color: 'rgba(245,158,11,0.65)' }}>"Take this masterclass and become crorepati in 6 months."</span>
+          </h2>
+          <p className="text-xl md:text-2xl font-bold text-slate-300 mb-6">That's not how investing works. The real data tells a different story.</p>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-rose-300"
+            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <Shield className="w-3.5 h-3.5" /> SEBI Study, January 2024
+          </div>
+        </FadeUp>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {[
+            { stat: '91%',          label: 'of F&O traders lost money',    note: 'In a 3-year SEBI study' },
+            { stat: '₹1.81 Lakh',   label: 'Avg Loss Per Trader (3 yrs)', note: 'After all costs and taxes' },
+            { stat: '₹1.81 Lakh Cr',label: 'Total Losses (3 Yrs)',        note: 'Across all retail F&O traders' },
+          ].map((c, i) => (
+            <FadeUp key={i} delay={i * 0.1}>
+              <div className="rounded-2xl p-6 text-center relative overflow-hidden"
+                style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', boxShadow: '0 4px 24px rgba(239,68,68,0.08)' }}>
+                <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg,transparent,rgba(239,68,68,0.5),transparent)' }} />
+                <div className="text-4xl md:text-5xl font-black text-rose-400 mb-2">{c.stat}</div>
+                <div className="text-sm font-bold text-white mb-1">{c.label}</div>
+                <div className="text-xs text-slate-500">{c.note}</div>
+              </div>
+            </FadeUp>
+          ))}
+        </div>
+
+        <FadeUp>
+          <div className="max-w-2xl mx-auto text-center p-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-slate-400 leading-relaxed">
+              <span className="text-white font-semibold">The math is rigged against retail.</span> Brokerage, slippage, taxes, and emotion — all compounding against you.
+            </p>
+          </div>
+        </FadeUp>
+      </div>
+    </section>
+  );
+}
+
+function PmsSection() {
+  return (
+    <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', background: 'var(--bg)' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-24">
+        <FadeUp className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-5"
+            style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
+            <Star className="w-3.5 h-3.5" /> For serious investors
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black mb-3">The numbers our top PMS funds have delivered.</h2>
+          <p className="text-slate-400">Real numbers, filed with SEBI.</p>
+        </FadeUp>
+
+        <FadeUp delay={0.1}>
+          <GlassCard className="overflow-x-auto mb-8">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th className="text-left px-6 py-4 text-xs uppercase tracking-widest text-slate-500 font-semibold w-1/2"></th>
+                  <th className="text-center px-3 py-4 text-xs uppercase tracking-widest text-slate-500 font-semibold whitespace-nowrap">3YR CAGR</th>
+                  <th className="text-center px-3 py-4 text-xs uppercase tracking-widest text-slate-500 font-semibold whitespace-nowrap">5YR CAGR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { name: 'Market benchmark',              cagr3: '12.4%', cagr5: '14.1%', highlight: false, badge: null },
+                  { name: 'Top Fund #1 — Multi-cap growth',cagr3: '24.8%', cagr5: '28.3%', highlight: true,  badge: 'The Angel way' },
+                  { name: 'Top Fund #2 — Mid & small cap', cagr3: '31.2%', cagr5: '34.7%', highlight: true,  badge: null },
+                  { name: 'Top Fund #3',                   cagr3: '19.6%', cagr5: '22.1%', highlight: true,  badge: null },
+                ].map((row, i) => (
+                  <tr key={i}
+                    style={{
+                      borderBottom: '1px solid var(--border)',
+                      background: row.highlight ? 'rgba(245,158,11,0.03)' : 'transparent',
+                    }}>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={row.highlight ? 'text-white font-semibold' : 'text-slate-400'}>{row.name}</span>
+                        {row.badge && (
+                          <span className="inline-block whitespace-nowrap px-2 py-0.5 rounded-full text-[10px] font-black text-slate-900 flex-shrink-0"
+                            style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+                            {row.badge}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-4 text-center font-bold whitespace-nowrap" style={{ color: row.highlight ? '#f59e0b' : '#94a3b8' }}>{row.cagr3}</td>
+                    <td className="px-3 py-4 text-center font-bold whitespace-nowrap" style={{ color: row.highlight ? '#f59e0b' : '#94a3b8' }}>{row.cagr5}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </GlassCard>
+        </FadeUp>
+
+        <FadeUp delay={0.2} className="text-center">
+          <p className="text-slate-400 mb-5">Want the actual fund names and detailed factsheets?</p>
+          <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-slate-900 text-sm"
+            style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.4)' }}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+            <Phone className="w-4 h-4" /> Request Factsheets — Free Call
+          </motion.button>
+          <p className="text-xs text-slate-600 mt-6 max-w-2xl mx-auto leading-relaxed">
+            Performance figures are sourced from PMSBazaar, calculated using TWRR methodology, net of all fees and expenses, as on 31st March 2026. Past performance does not guarantee future results.
+          </p>
+        </FadeUp>
+      </div>
+    </section>
+  );
+}
+
+function CompareSection() {
+  const rows = [
+    { bad: 'Sell products with highest commission',          good: 'Zero fees, zero courses — no sales pitch, ever' },
+    { bad: 'Push courses promising quick riches',            good: 'Portfolio built for you — not a generic product pitch' },
+    { bad: 'Tip stocks they don\'t own themselves',          good: 'Stays through every storm — calls you exactly when others run' },
+    { bad: 'One-size-fits-all product pitch',                good: 'Zero sales targets — we only grow when you grow' },
+    { bad: 'Disappear when markets crash',                   good: '40+ fund managers — with 20+ years each, in our network' },
+    { bad: 'Bank RMs with 1-3 years on the job',             good: '13+ years of active market experience — Not 13 months on the job.' },
+  ];
+
+  return (
+    <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', background: 'var(--bg)' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-24">
+        <FadeUp className="text-center mb-12">
+          <h2 className="text-3xl md:text-5xl font-black mb-4">Why us, not others</h2>
+          <p className="text-slate-400 max-w-xl mx-auto">Banks, finfluencers, tip-sellers — here's what sets us apart.</p>
+        </FadeUp>
+
+        <FadeUp delay={0.1}>
+          <GlassCard className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th className="text-center px-6 py-4 text-sm font-black text-rose-400 w-1/2">Banks, tip sellers, course peddlers</th>
+                  <th className="text-center px-6 py-4 text-sm font-black text-amber-400 w-1/2">The Angel way</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <motion.tr key={i}
+                    initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.45, delay: i * 0.06, ease }}
+                    style={{ borderBottom: i < rows.length - 1 ? '1px solid var(--border)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+                    <td className="px-6 py-4 text-slate-500">
+                      <div className="flex items-start gap-3">
+                        <span className="text-rose-500 flex-shrink-0 mt-0.5 font-bold">✗</span>
+                        <span>{row.bad}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-300">
+                      <div className="flex items-start gap-3">
+                        <span className="text-amber-400 flex-shrink-0 mt-0.5 font-bold">✓</span>
+                        <span>{row.good}</span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </GlassCard>
+        </FadeUp>
+      </div>
+    </section>
+  );
+}
+
+function TestimonialsSection() {
+  const testimonials = [
+    { name: 'Rahul K',   role: 'Subscriber, Bengaluru', quote: 'Started SIP 4 years ago through Angel. They didn\'t push a product — they built a plan with me. First time I understood what I was investing in.' },
+    { name: 'Meena S.',  role: 'Doctor, Hyderabad',     quote: '2020 crash, everyone panicked. My Angel advisor called me before I could call them. Stayed put. Best decision of my investing life.' },
+    { name: 'Arjun V.',  role: 'Teacher, Pune',         quote: 'The F&O trap almost got me. They showed me the SEBI data, explained the math, and helped me shift to a fund that\'s up 31% in 3 years.' },
+  ];
+
+  return (
+    <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', background: 'var(--bg)' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-24">
+        <FadeUp className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-5"
+            style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
+            <Youtube className="w-3.5 h-3.5" /> From our YouTube community
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black mb-3">What our investors say</h2>
+          <p className="text-slate-500">2008, 2013, 2020, 2022 — cycles survived — emotion tested</p>
+        </FadeUp>
+
+        {/* Desktop: horizontal marquee */}
+        <div className="hidden md:block overflow-hidden">
+          <div className="flex gap-6 marquee-h" style={{ width: 'max-content' }}>
+            {[...testimonials, ...testimonials].map((t, i) => (
+              <div key={i} className="w-80 flex-shrink-0">
+                <GlassCard className="p-6 h-full flex flex-col">
+                  <div className="flex gap-0.5 mb-4">
+                    {[...Array(5)].map((_, si) => <Star key={si} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+                  </div>
+                  <p className="text-slate-300 leading-relaxed flex-1 mb-5">"{t.quote}"</p>
+                  <div className="flex items-center gap-3 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-slate-900 flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+                      {t.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white">{t.name}</p>
+                      <p className="text-xs text-slate-500">{t.role}</p>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile: vertical marquee */}
+        <div className="md:hidden overflow-hidden" style={{ height: 520 }}>
+          <div className="flex flex-col gap-5 marquee-v" style={{ height: 'max-content' }}>
+            {[...testimonials, ...testimonials].map((t, i) => (
+              <GlassCard key={i} className="p-6 flex flex-col">
+                <div className="flex gap-0.5 mb-4">
+                  {[...Array(5)].map((_, si) => <Star key={si} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+                </div>
+                <p className="text-slate-300 leading-relaxed mb-5">"{t.quote}"</p>
+                <div className="flex items-center gap-3 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-slate-900 flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+                    {t.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{t.name}</p>
+                    <p className="text-xs text-slate-500">{t.role}</p>
+                  </div>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -458,9 +808,8 @@ function GlassCard({ children, className = '', glow = '' }: any) {
     <div className={`relative rounded-2xl overflow-hidden ${className}`}
       style={{
         background: 'var(--card-bg)',
-        backdropFilter: 'blur(20px) saturate(160%)',
         border: '1px solid var(--card-border)',
-        boxShadow: `0 4px 32px var(--shadow), inset 0 1px 0 var(--surface-strong)${glow ? `, 0 0 60px ${glow}` : ''}`,
+        boxShadow: `0 4px 32px var(--shadow)${glow ? `, 0 0 60px ${glow}` : ''}`,
       }}>
       <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--card-shimmer), transparent)' }} />
       {children}
@@ -1320,9 +1669,9 @@ export default function App() {
   }, []);
 
   const location = useLocation();
-  const isSip = location.pathname === '/sip';
-  const isLS = location.pathname === '/lumpsum';
-  const routeMode = isSip ? 'sip' : isLS ? 'lumpsum' : 'home';
+  const isCalc = location.pathname === '/calculator';
+  const [calcMode, setCalcMode] = useState<'sip' | 'lumpsum'>('sip');
+  const routeMode = isCalc ? calcMode : 'home';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [exp, setExp] = useState(40000), [faq, setFaq] = useState<number | null>(null), [done, setDone] = useState(false);
   const [fd, setFd] = useState({ name: '', phone: '', cap: '' });
@@ -1337,16 +1686,17 @@ export default function App() {
   };
 
   const faqs = [
-    { q: 'Is ₹5,000/month really enough for retirement?', a: 'It depends on when you start and how disciplined you are with the annual step-up. Starting at 18 with ₹5,000/month and a 10% step-up, your corpus at 43 (25 years later) will be over ₹2 crore. The earlier you start, the less you need to invest. Delaying by even 5 years can cost you ₹50–80 lakhs in final corpus.' },
-    { q: 'What is the annual step-up and why does it matter?', a: 'Step-up means increasing your SIP amount every year — usually matching your salary hike. A 10% step-up on ₹5,000 means ₹5,500 in year 2, ₹6,050 in year 3, and so on. Over 25 years, a 10% step-up typically doubles your final corpus compared to a flat SIP. It is the single biggest lever most investors ignore.' },
-    { q: 'Why does the calculator show 8% inflation?', a: 'Official CPI inflation is 5–6%. But your lifestyle does not stay the same — better food, more travel, better healthcare as you age adds another 2%. That is lifestyle creep. Healthcare is inflated separately at 10% because medical costs in India have been rising at 10–12% annually for the last decade.' },
-    { q: 'What is the withdrawal step-up and why is it on by default?', a: 'During retirement, your expenses keep rising every year due to inflation. If you withdraw the same fixed amount every month for 25 years, you will be able to afford less and less each year. The step-up models this reality — your withdrawal increases by 6% every year to match inflation.' },
-    { q: 'What is the minimum investment for PMS?', a: 'SEBI mandates a minimum of ₹50 lakhs for Portfolio Management Services (PMS). This is a direct, customised equity portfolio managed by experienced fund managers — different from mutual funds where your money is pooled with others.' },
-    { q: 'What is AIF and who is it for?', a: 'Alternative Investment Funds (AIF) are for investors with ₹1 crore or more seeking access to private equity, venture capital, real estate credit, and hedge strategies. These asset classes are unavailable to retail investors and offer returns uncorrelated to the stock market.' },
-    { q: 'What are GIFT City Funds?', a: "GIFT City is India's IFSC — International Financial Services Centre. It allows Indian investors to invest in USD-denominated global funds. Minimum investment is around $1,50,000 (~₹1.25 Cr). Ideal for HNI investors seeking USD exposure and global equity diversification." },
-    { q: 'How is the "increase SIP by X" number calculated?', a: 'The calculator works backwards using a binary search algorithm. It finds the minimum additional monthly SIP that, when added to your current SIP and compounded at the same returns, produces a corpus large enough to fund your full retirement period with inflation-adjusted withdrawals.' },
-    { q: 'Is my data safe? Does Angel Investments see my numbers?', a: 'All calculations happen entirely in your browser — your numbers never leave your device. The only data we receive is what you voluntarily submit in the consultation form (name and phone). We do not store calculator inputs or retirement numbers.' },
-    { q: 'Can I use this calculator for my parents or spouse?', a: 'Absolutely. Just change the starting age and current monthly expenses to match their situation. The calculator works for any investor — whether they are 18 starting their first SIP or 55 planning retirement with a lumpsum.' },
+    { q: 'Where does my money actually go?', a: 'Your money goes directly into SEBI-regulated products — Mutual Funds, PMS, AIF, or GIFT City Funds — managed by SEBI-registered portfolio managers and AMCs. Our role is to help you find the right managers and the right products for your goals.' },
+    { q: 'So what is your role exactly?', a: 'We do three things: (1) understand your goals and risk profile through a free conversation, (2) help you connect with experienced SEBI-registered fund managers from our network of 40+, and (3) stay with you through market ups and downs so you don\'t make emotional decisions. We don\'t manage your money. We help you find people who do it well.' },
+    { q: 'Why can\'t I just contact those fund managers directly?', a: 'Honest answer — they won\'t entertain you. These managers handle ₹1,000+ crores and their entire job is research, not customer onboarding. It doesn\'t matter if you walk in with ₹10 lakh or ₹50 lakh — you\'re still a small account to them. No priority access, no DIY dashboard, no one returning your calls. They outsource client service to distributors like us. We bring them ₹20-25 crores of investments every month, which earns our clients direct lines to the managers\' teams. And even if you do reach one manager, they\'ll only sell you THEIR fund — like asking a Tata dealer whether to buy a Tata or a Mahindra. Obvious bias.' },
+    { q: 'How do you know which fund managers are actually performing?', a: 'We are not a single fund — we are a platform. We track 40+ fund managers across multiple market cycles. We see who delivered in 2008, who panicked in 2020, who quietly outperformed in 2022. That takes a full-time research team, continuous data access, and years of relationships. You get choice, comparison, and real performance data — not one manager pitching their own fund.' },
+    { q: 'Is this service free?', a: 'Yes — completely free to you. We earn a small distributor commission from the fund house when you invest. You pay nothing extra. This commission is built into the expense ratio of the fund — the same ratio you would pay whether you came through us or any other distributor.' },
+    { q: 'What is the minimum amount to start?', a: 'For mutual funds: as little as ₹500/month SIP or ₹5,000 lumpsum. For PMS: minimum ₹50 lakh (SEBI mandated). For AIF: minimum ₹1 crore. For GIFT City global funds: around $150,000 (~₹1.25 Cr).' },
+    { q: 'I already have stocks and mutual funds. Can you help me?', a: 'Yes. On the call, you can share your current holdings with us. We\'ll explain how different fund categories work, how market cycles affect portfolios, and what options are available for you. Per SEBI rules, we share data and frameworks only — every decision about your existing investments stays with you.' },
+    { q: 'Why should I trust you instead of a bank RM?', a: 'Most bank RMs are under 30 years old, hired to hit product sales targets, and have never personally traded through a bear market. Our team has 13+ years of active market experience. Our fund manager network has a strict 20+ years minimum experience filter — they\'ve survived 2008, 2013, 2020, and 2022 cycles. Plus we have zero product targets.' },
+    { q: 'I\'ll just do SIP myself. Why do I need you?', a: 'Starting an SIP is easy. Staying invested through a 30% market crash is not. AMFI data shows 39% of retail investors exit equity within 24 months — most stop their SIPs exactly when they should continue. That\'s where we come in. When the market panics, you get a call from someone who has watched 2008, 2020, 2022 play out. That person tells you — don\'t touch it, keep going. SIP is the tool. Discipline is the strategy. We are the discipline.' },
+    { q: 'Are you SEBI registered?', a: 'Honest answer: we are NOT SEBI-registered Investment Advisors. We are AMFI-registered and connect you with SEBI-registered portfolio managers who have 20+ years of market experience. Your money is always invested directly into SEBI-regulated products managed by the fund house.' },
+    { q: 'How soon will you call back?', a: 'Within 24 hours of submitting the form. For urgent queries, use the call button on this page to reach us immediately during business hours.' },
   ];
 
   return (
@@ -1360,13 +1710,13 @@ export default function App() {
 
       {/* Floating call */}
       <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-        className="fixed bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-5 sm:py-3.5 rounded-full text-white font-bold"
-        style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 8px 32px rgba(16,185,129,0.35)' }}
-        whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(16,185,129,0.5)' }} whileTap={{ scale: 0.95 }}
-        animate={{ boxShadow: ['0 0 0 0 rgba(16,185,129,0.5)', '0 0 0 14px rgba(16,185,129,0)', '0 0 0 0 rgba(16,185,129,0)'] }}
+        className="fixed bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-bold text-sm text-slate-900"
+        style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.45)' }}
+        whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(245,158,11,0.6)' }} whileTap={{ scale: 0.95 }}
+        animate={{ boxShadow: ['0 0 0 0 rgba(245,158,11,0.55)', '0 0 0 14px rgba(245,158,11,0)', '0 0 0 0 rgba(245,158,11,0)'] }}
         transition={{ boxShadow: { duration: 2, repeat: Infinity }, scale: { type: 'spring', stiffness: 400 } }}>
-        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-        <div className="leading-tight"><div className="hidden sm:block text-[10px] opacity-70 font-normal">Call us free</div><div className="text-xs sm:text-sm">90352 54332</div></div>
+        <Phone className="w-4 h-4" />
+        <span>Call Us</span>
       </motion.button>
 
       {/* Nav */}
@@ -1384,7 +1734,7 @@ export default function App() {
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            {[['/', 'Home'], ['/sip', 'SIP Plan'], ['/lumpsum', 'Lumpsum Plan']].map(([to, label]) => (
+            {[['/', 'Home'], ['/calculator', 'Retirement Calculator']].map(([to, label]) => (
               <NavLink key={to} to={to} className={({ isActive }: { isActive: boolean }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
                 {label}
               </NavLink>
@@ -1394,10 +1744,10 @@ export default function App() {
           {/* Desktop CTA + mobile hamburger */}
           <div className="flex items-center gap-3">
             <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-slate-900"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-900"
               style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
               whileHover={{ scale: 1.05, boxShadow: '0 6px 24px rgba(245,158,11,0.45)' }} whileTap={{ scale: 0.97 }}>
-              <Phone className="w-3.5 h-3.5" /> +91 90352 54332
+              <Phone className="w-3 h-3" /> Call Us
             </motion.button>
             <motion.button className="md:hidden p-2 rounded-lg text-slate-300"
               style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
@@ -1417,7 +1767,7 @@ export default function App() {
               className="md:hidden overflow-hidden"
               style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-soft)', backdropFilter: 'blur(20px)' }}>
               <div className="flex flex-col px-4 py-4 gap-1">
-                {[['/', 'Home'], ['/sip', 'SIP Plan'], ['/lumpsum', 'Lumpsum Plan']].map(([to, label]) => (
+                {[['/', 'Home'], ['/calculator', 'Retirement Calculator']].map(([to, label]) => (
                   <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }: { isActive: boolean }) => `px-3 py-3 rounded-xl text-sm font-medium transition ${isActive ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
                     {label}
@@ -1425,9 +1775,9 @@ export default function App() {
                 ))}
                 <div className="pt-3 mt-2" style={{ borderTop: '1px solid var(--border)' }}>
                   <button onClick={() => { setMobileMenuOpen(false); window.open('tel:+919035254332', '_self'); showCallToast(); }}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-slate-900"
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-slate-900"
                     style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
-                    <Phone className="w-4 h-4" /> Call +91 90352 54332
+                    <Phone className="w-3 h-3" /> Call Us
                   </button>
                 </div>
               </div>
@@ -1436,193 +1786,62 @@ export default function App() {
         </AnimatePresence>
       </motion.nav>
 
-      {(!isSip && !isLS) && (
-      <>
-        {/* Hero */}
-        <section className="relative w-full overflow-hidden min-h-[calc(100vh-4rem)] flex items-center">
-          {/* Video bg */}
-          <video className="absolute inset-0 w-full h-full object-cover"
-            src={HERO_VIDEO_URL} autoPlay loop muted playsInline
-            style={{ filter: 'brightness(0.45) saturate(1.1)' }} />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(6,11,20,0.85) 0%, rgba(6,11,20,0.6) 50%, rgba(6,11,20,0.75) 100%)' }} />
-          <HeroOrbs />
-
-          {/* Two-column content */}
-          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-
-            {/* ── Left: text ── */}
-            <div className="flex-1 lg:max-w-[520px] flex flex-col gap-6">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 self-start"
-                style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.22)' }}>
-                <Sparkles className="w-3.5 h-3.5" /> Retirement Reality Check
-              </motion.div>
-
-              <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.1, ease }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight"
-                style={{ background: 'linear-gradient(135deg,#ffffff 40%,rgba(255,255,255,0.45))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Will your money last<br />as long as you do?
-              </motion.h1>
-
-              <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2, ease }}
-                className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-md">
-                SIP or lumpsum — see if your retirement plan actually works. Adjusted for real Indian inflation, with withdrawal step-up. Takes 60 seconds.
-              </motion.p>
-
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.3, ease }}
-                className="flex flex-wrap gap-3">
-                <Link to="/sip" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-slate-900 text-sm"
-                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 28px rgba(245,158,11,0.38)' }}>
-                  <Play className="w-4 h-4 fill-current" /> Check SIP Plan
-                </Link>
-                <Link to="/lumpsum" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-emerald-300 text-sm"
-                  style={{ border: '1px solid rgba(16,185,129,0.28)', background: 'rgba(16,185,129,0.06)' }}>
-                  <BarChart2 className="w-4 h-4" /> Lumpsum Plan
-                </Link>
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45, ease }}
-                className="flex flex-wrap items-center gap-6 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                {[
-                  [<Youtube key="yt" className="w-4 h-4 text-rose-500" />, '5L+ Subscribers'],
-                  [<div key="stars" className="flex">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}</div>, 'Top-rated'],
-                  [<Shield key="sh" className="w-4 h-4 text-emerald-500" />, 'SEBI Regulated'],
-                ].map(([ico, txt]: any, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.08, ease }}
-                    className="flex items-center gap-2 text-sm text-slate-500">{ico}{txt}</motion.div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* ── Right: carousel ── */}
-            <motion.div className="flex-1 w-full lg:max-w-[440px]"
-              initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.25, ease }}>
-              <HeroCarousel />
-            </motion.div>
-
-          </div>
-        </section>
-      </>
+      {!isCalc && (
+        <LandingPage />
       )}
 
-      {(isSip || isLS) && (
+      {isCalc && (
         <>
-          <CalcHeroSection mode={isSip ? 'sip' : 'lumpsum'} />
+          <CalcHeroSection mode={calcMode} setMode={setCalcMode} />
           <PageContainer>
-            {isSip ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
+            {calcMode === 'sip' ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
           </PageContainer>
         </>
       )}
 
-      {/* Consultation */}
-      {!isSip && !isLS && (
-      <section className="w-full" style={{ borderTop: '1px solid var(--section-border)', borderBottom: '1px solid var(--section-border)', background: 'var(--bg)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-24">
 
-          {/* Section header */}
-          <FadeUp className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-amber-300 mb-6"
-              style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}>
-              <Calendar className="w-3.5 h-3.5" /> Free 1-on-1 Consultation
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black mb-4">Numbers are great.<br /><span className="text-amber-400">A plan is better.</span></h2>
-            <p className="text-slate-400 max-w-xl mx-auto">Tell us where you are. We'll tell you what to do next — in plain language, no jargon, no pressure.</p>
-          </FadeUp>
-
-          {/* Two-column layout */}
-          <div className="flex flex-col lg:flex-row gap-8 items-stretch">
-
-            {/* Left: Glassmorphism image card */}
-            <FadeUp className="lg:w-5/12">
-              <ConsultImageCard />
-            </FadeUp>
-
-            {/* Right: Form */}
-            <div className="lg:w-7/12">
-          {!done ? (
-            <FadeUp delay={0.15}>
-              <GlassCard>
-                <div className="grid grid-cols-1 sm:grid-cols-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                  {[{ n: '01', t: 'Fill this form', d: '30 seconds. Name & number only.' }, { n: '02', t: 'We call within 24hrs', d: 'Our expert reviews your numbers first.' }, { n: '03', t: 'Get your plan', d: 'Clear next steps. No sales pressure.' }].map((s, i) => (
-                    <div key={s.n} className="p-5 text-center" style={{ borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black mx-auto mb-3"
-                        style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#07090f', boxShadow: '0 4px 12px rgba(245,158,11,0.35)' }}>{s.n}</div>
-                      <p className="text-sm font-bold text-white mb-1">{s.t}</p>
-                      <p className="text-xs text-slate-500">{s.d}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-6 sm:p-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <FormField icon={<User className="w-4 h-4" />} label="Full Name" value={fd.name} onChange={(v: string) => setFd({ ...fd, name: v })} placeholder="Your name" />
-                    <FormField icon={<Phone className="w-4 h-4" />} label="Contact Number" type="tel" value={fd.phone} onChange={(v: string) => setFd({ ...fd, phone: v })} placeholder="+91 98765 43210" />
-                  </div>
-                  <div className="mb-6">
-                    <label className="text-xs uppercase tracking-widest text-slate-500 mb-3 block">Where are you in your investment journey?</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {[
-                        { v: 'starting', l: 'Just starting out', d: "Haven't invested yet or just started SIP" },
-                        { v: 'sip-growing', l: 'Building via SIP', d: 'Regular SIP investor, want to optimise' },
-                        { v: 'lumpsum-ready', l: 'Have a lumpsum ready', d: '₹10L+ ready to deploy' },
-                        { v: 'hni', l: 'HNI — looking for PMS/AIF', d: '₹50L+ portfolio, want professional management' },
-                      ].map(opt => (
-                        <motion.button key={opt.v} onClick={() => setFd({ ...fd, cap: opt.v })}
-                          className="text-left p-4 rounded-xl border transition"
-                          style={{ background: fd.cap === opt.v ? 'rgba(245,158,11,0.08)' : 'var(--surface-alt)', border: fd.cap === opt.v ? '1px solid rgba(245,158,11,0.4)' : '1px solid var(--border)', boxShadow: fd.cap === opt.v ? '0 0 20px rgba(245,158,11,0.08)' : 'none' }}
-                          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <div className="flex items-start gap-3">
-                            <div className="w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition"
-                              style={{ borderColor: fd.cap === opt.v ? '#f59e0b' : '#374151' }}>
-                              {fd.cap === opt.v && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />}
-                            </div>
-                            <div><p className="text-sm font-semibold" style={{ color: fd.cap === opt.v ? 'var(--primary)' : 'var(--text)' }}>{opt.l}</p><p className="text-xs text-slate-500 mt-0.5">{opt.d}</p></div>
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-                  <motion.button onClick={submit} disabled={!fd.name || !fd.phone}
-                    className="w-full py-4 rounded-xl font-black text-lg text-slate-900 disabled:opacity-40 flex items-center justify-center gap-2 mb-4"
-                    style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.35)' }}
-                    whileHover={{ scale: 1.01, boxShadow: '0 12px 40px rgba(245,158,11,0.5)' }} whileTap={{ scale: 0.99 }}>
-                    <Calendar className="w-5 h-5" /> Book My Free Consultation
-                  </motion.button>
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      {['RK', 'MS', 'AP', 'VN'].map(i => (
-                        <div key={i} className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-slate-900 border-2"
-                          style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', borderColor: 'var(--bg)' }}>{i}</div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-slate-500">10,000+ investors already consulted</p>
-                  </div>
-                  <p className="text-xs text-slate-600 text-center mt-3">No spam. Your details are only used to schedule your call.</p>
-                </div>
-              </GlassCard>
-            </FadeUp>
-          ) : (
-            <FadeUp>
-              <div className="rounded-2xl p-12 text-center h-full flex flex-col items-center justify-center" style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', boxShadow: '0 0 60px rgba(16,185,129,0.06)' }}>
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
-                  className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(16,185,129,0.15)', boxShadow: '0 0 30px rgba(16,185,129,0.2)' }}>
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-                </motion.div>
-                <h3 className="text-3xl font-black mb-3">You're in, {fd.name.split(' ')[0]}!</h3>
-                <p className="text-slate-400 mb-2">Our team will call you within 24 hours.</p>
-                <p className="text-sm text-slate-500 mb-6">You mentioned: <span className="text-amber-400 font-semibold">{{ starting: 'Getting started with SIP', 'sip-growing': 'Optimising your SIP', 'lumpsum-ready': 'Lumpsum investment', hni: 'PMS / AIF management' }[fd.cap as string] || 'Investment planning'}</span></p>
+      {/* Calculator CTA */}
+      {!isCalc && (
+      <section className="w-full px-4 sm:px-6 py-10 md:py-14">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-[11px] uppercase tracking-[0.25em] text-amber-400 font-bold mb-3">Free Tools</p>
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-2">See exactly how your money compounds</h2>
+            <p className="text-slate-400 text-sm md:text-base">Use our retirement calculators to model your investment scenarios.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link to="/calculator"
+              className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02]"
+              style={{background:'linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.03))',border:'1px solid rgba(16,185,129,0.3)'}}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:'rgba(16,185,129,0.15)'}}>
+                <TrendingUp className="w-6 h-6" style={{color:'#34d399'}}/>
               </div>
-            </FadeUp>
-          )}
-            </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white text-base">SIP Calculator</p>
+                <p className="text-slate-400 text-xs mt-0.5">Monthly investment → retirement corpus</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition flex-shrink-0"/>
+            </Link>
+            <Link to="/calculator"
+              className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02]"
+              style={{background:'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.03))',border:'1px solid rgba(245,158,11,0.25)'}}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:'rgba(245,158,11,0.12)'}}>
+                <Briefcase className="w-6 h-6" style={{color:'#fbbf24'}}/>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white text-base">Lumpsum Calculator</p>
+                <p className="text-slate-400 text-xs mt-0.5">One-time investment → retirement corpus</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition flex-shrink-0"/>
+            </Link>
           </div>
         </div>
       </section>
       )}
 
       {/* FAQ */}
-      {!isSip && !isLS && (
-      <section className="w-full px-4 sm:px-6 py-14 md:py-24 relative overflow-hidden">
+      {!isCalc && (
+      <section className="w-full px-4 sm:px-6 pt-0 pb-14 md:pb-24 relative overflow-hidden">
 
         {/* Floating background decoration */}
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
@@ -1687,7 +1906,8 @@ export default function App() {
                   transition={{ duration: 0.45, delay: i * 0.05, ease }}
                   whileHover={{ y: isOpen ? 0 : -2 }}
                 >
-                  <div className="relative rounded-2xl overflow-hidden"
+                  <div className="relative rounded-2xl overflow-hidden cursor-pointer"
+                    onClick={() => setFaq(isOpen ? null : i)}
                     style={{
                       border: `1px solid ${isOpen ? 'rgba(245,158,11,0.32)' : 'var(--faq-border)'}`,
                       background: isOpen ? 'rgba(245,158,11,0.04)' : 'var(--faq-bg)',
@@ -1707,8 +1927,7 @@ export default function App() {
                     </AnimatePresence>
 
                     {/* Question row */}
-                    <button onClick={() => setFaq(isOpen ? null : i)}
-                      className="w-full px-5 py-4 flex items-center gap-4 text-left group">
+                    <div className="w-full px-5 py-4 flex items-center gap-4 text-left">
 
                       {/* Number badge */}
                       <motion.div
@@ -1734,7 +1953,7 @@ export default function App() {
                         className="flex-shrink-0">
                         <ChevronDown className="w-4 h-4" />
                       </motion.div>
-                    </button>
+                    </div>
 
                     {/* Answer */}
                     <AnimatePresence>
@@ -1764,26 +1983,6 @@ export default function App() {
             })}
           </div>
 
-          {/* Bottom CTA strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.2, ease }}
-            className="mt-10 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
-            style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }}>
-            <div>
-              <p className="font-bold text-white mb-1">Still have questions?</p>
-              <p className="text-sm text-slate-400">Our advisors answer within 24 hours — no jargon, no pressure.</p>
-            </div>
-            <motion.button
-              onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-              whileHover={{ scale: 1.05, boxShadow: '0 8px 28px rgba(245,158,11,0.45)' }}
-              whileTap={{ scale: 0.97 }}
-              className="flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm text-slate-900 whitespace-nowrap"
-              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}>
-              <Phone className="w-4 h-4" /> Call Us Free
-            </motion.button>
-          </motion.div>
-
         </div>
       </section>
       )}
@@ -1810,7 +2009,6 @@ export default function App() {
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   Instagram
                 </a>
-                <button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }} className="hover:text-emerald-400 flex items-center gap-2 transition text-left"><Phone className="w-4 h-4" /> +91 90352 54332</button>
               </div>
             </div>
             <div>
@@ -1818,7 +2016,6 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">This calculator is for illustrative and educational purposes only. Angel Investments is an AMFI-registered Mutual Fund Distributor. We deal exclusively in SEBI regulated investment products — Mutual Funds, Portfolio Management Services (PMS), Alternative Investment Funds (AIF), and GIFT City Funds. We are not SEBI-registered Investment Advisors and do not provide regulated investment advice. All investments are subject to market risk. Past performance is not indicative of future results. Please read all scheme-related documents carefully before investing.</p>
             </div>
           </div>
-          <div className="pt-6 text-center text-xs text-slate-700" style={{ borderTop: '1px solid var(--divider)' }}>© 2026 Angel Investments Content Studios. All rights reserved.</div>
         </div>
       </footer>
     </div>
