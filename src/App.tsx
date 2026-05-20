@@ -1809,28 +1809,16 @@ export default function App() {
             <h2 className="text-2xl md:text-3xl font-black text-white mb-2">See exactly how your money compounds</h2>
             <p className="text-slate-400 text-sm md:text-base">Use our retirement calculators to model your investment scenarios.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex justify-center">
             <Link to="/calculator"
-              className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02]"
-              style={{background:'linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.03))',border:'1px solid rgba(16,185,129,0.3)'}}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:'rgba(16,185,129,0.15)'}}>
-                <TrendingUp className="w-6 h-6" style={{color:'#34d399'}}/>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-white text-base">SIP Calculator</p>
-                <p className="text-slate-400 text-xs mt-0.5">Monthly investment → retirement corpus</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition flex-shrink-0"/>
-            </Link>
-            <Link to="/calculator"
-              className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02]"
+              className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02] w-full max-w-sm"
               style={{background:'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.03))',border:'1px solid rgba(245,158,11,0.25)'}}>
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:'rgba(245,158,11,0.12)'}}>
-                <Briefcase className="w-6 h-6" style={{color:'#fbbf24'}}/>
+                <TrendingUp className="w-6 h-6" style={{color:'#fbbf24'}}/>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-white text-base">Lumpsum Calculator</p>
-                <p className="text-slate-400 text-xs mt-0.5">One-time investment → retirement corpus</p>
+                <p className="font-bold text-white text-base">Retirement Calculator</p>
+                <p className="text-slate-400 text-xs mt-0.5">Model your SIP &amp; lumpsum scenarios</p>
               </div>
               <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition flex-shrink-0"/>
             </Link>
