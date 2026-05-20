@@ -8,65 +8,65 @@
 
   /* Base */
   --bg:              #060b14;
-  --bg-soft:         rgba(6,11,20,0.88);
-  --surface:         rgba(255,255,255,0.04);
-  --surface-strong:  rgba(255,255,255,0.06);
-  --surface-alt:     rgba(255,255,255,0.025);
+  --bg-soft:         rgba(6,11,20,0.9);
+  --surface:         #0f1b2e;
+  --surface-strong:  rgba(255,255,255,0.04);
+  --surface-alt:     rgba(255,255,255,0.02);
   --text:            #f9fafb;
   --muted:           #94a3b8;
-  --border:          rgba(255,255,255,0.08);
-  --border-strong:   rgba(255,255,255,0.12);
-  --divider:         rgba(255,255,255,0.05);
+  --border:          #1e293b;
+  --border-strong:   #334155;
+  --divider:         #1e293b;
   --primary:         #f59e0b;
   --primary-strong:  #d97706;
   --accent:          #7c3aed;
   --shadow:          rgba(0,0,0,0.45);
 
   /* Cards */
-  --card-bg:         rgba(255,255,255,0.03);
-  --card-border:     rgba(255,255,255,0.07);
-  --card-shimmer:    rgba(255,255,255,0.07);
+  --card-bg:         #0f1b2e;
+  --card-border:     #1e293b;
+  --card-shimmer:    rgba(255,255,255,0.04);
 
   /* Inputs / Sliders */
-  --track-bg:        rgba(51,65,85,0.6);
-  --input-bg:        rgba(255,255,255,0.04);
-  --input-border:    rgba(255,255,255,0.08);
+  --track-bg:        rgba(51,65,85,0.8);
+  --input-bg:        #0d1520;
+  --input-border:    #334155;
 
   /* Section ghost numbers */
-  --num-ghost:       rgba(255,255,255,0.04);
+  --num-ghost:       rgba(255,255,255,0.03);
 
   /* Charts */
   --chart-grid:      rgba(255,255,255,0.04);
   --chart-axis:      #334155;
   --chart-tick:      #475569;
   --tooltip-bg:      #050c18;
-  --tooltip-border:  rgba(255,255,255,0.06);
+  --tooltip-border:  #1e293b;
   --tooltip-text:    #f9fafb;
   --tooltip-shadow:  rgba(0,0,0,0.5);
 
   /* Structural */
   --footer-bg:       #060b14;
-  --footer-border:   rgba(255,255,255,0.06);
-  --section-border:  rgba(255,255,255,0.06);
-  --faq-bg:          rgba(255,255,255,0.02);
-  --faq-border:      rgba(255,255,255,0.06);
+  --footer-border:   #1e293b;
+  --section-border:  #1e293b;
+  --faq-bg:          #0f1b2e;
+  --faq-border:      #1e293b;
   --orb-fade:        #060b14;
 
   /* Verdict semantic colours */
-  --emerald-subtle:  rgba(16,185,129,0.06);
+  --emerald-subtle:  rgba(16,185,129,0.05);
   --emerald-border:  rgba(16,185,129,0.2);
-  --amber-subtle:    rgba(245,158,11,0.05);
-  --amber-border:    rgba(245,158,11,0.2);
+  --amber-subtle:    rgba(245,158,11,0.08);
+  --amber-border:    rgba(245,158,11,0.15);
   --rose-subtle:     rgba(239,68,68,0.06);
-  --rose-border:     rgba(239,68,68,0.2);
-  --violet-subtle:   rgba(124,58,237,0.05);
-  --violet-border:   rgba(124,58,237,0.2);
-  --sky-subtle:      rgba(14,165,233,0.06);
-  --sky-border:      rgba(14,165,233,0.18);
+  --rose-border:     rgba(239,68,68,0.3);
+  --violet-subtle:   rgba(99,102,241,0.06);
+  --violet-border:   rgba(99,102,241,0.15);
+  --sky-subtle:      rgba(14,165,233,0.05);
+  --sky-border:      rgba(14,165,233,0.15);
 
   /* Button overrides (see global button block below) */
-  --button-bg:       rgba(255,255,255,0.08);
-  --button-border:   rgba(255,255,255,0.18);
+  --button-bg:       rgba(255,255,255,0.02);
+  --button-border:   #334155;
   --button-text:     #f9fafb;
   --button-glow:     hsla(260,97%,61%,0.75);
   --button-overlay:  hsla(260,97%,61%,0.18);
@@ -138,9 +138,9 @@ button {
   justify-content: center;
   gap: 0.75rem;
   padding: 0.85rem 1.5rem;
-  background: var(--button-bg) !important;
-  border: 1px solid var(--button-border) !important;
-  color: var(--button-text) !important;
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
+  color: var(--button-text);
   border-radius: var(--button-radius);
   outline: none;
   text-decoration: none;
@@ -180,6 +180,65 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 button > * { position: relative; z-index: 1; }
 button svg, button svg .path { color: inherit; fill: currentColor; stroke: currentColor; }
 
+
+/* ─── Marquee animations ─────────────────────────────── */
+@keyframes marquee-h {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marquee-v {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+.marquee-h { animation: marquee-h 28s linear infinite; }
+.marquee-v { animation: marquee-v 22s linear infinite; }
+.marquee-h:hover,
+.marquee-v:hover { animation-play-state: paused; }
+
+/* ─── Range slider track fill ────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: #1e293b;
+}
+input[type="range"]::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: #f59e0b;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 2px solid #fbbf24;
+  box-shadow: 0 0 6px rgba(245,158,11,0.5);
+  margin-top: -6px;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 2px solid #fbbf24;
+  box-shadow: 0 0 6px rgba(245,158,11,0.5);
+  cursor: pointer;
+}
 
 /* ─── Tailwind color overrides — theme-aware ─────────── */
 
