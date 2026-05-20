@@ -1673,6 +1673,7 @@ export default function App() {
   }, []);
 
   const location = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   const isCalc = location.pathname === '/calculator';
   const [calcMode, setCalcMode] = useState<'sip' | 'lumpsum'>('sip');
   const routeMode = isCalc ? calcMode : 'home';
