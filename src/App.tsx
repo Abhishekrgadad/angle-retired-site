@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, ChevronRight, Phone, User, Zap, BarChart2, Briefcase, Menu, X } from 'lucide-react';
+import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, ChevronRight, Phone, PhoneCall, User, Zap, BarChart2, Briefcase, Menu, X } from 'lucide-react';
 // @ts-ignore
 import LandingPage from './LandingPage.jsx';
 
@@ -1381,12 +1381,12 @@ function SIPCalc({ exp, setExp }: any) {
         <GlassCard className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Slider label="Monthly SIP" value={sip} onChange={setSip} min={1000} max={500000} step={1000} prefix="₹" format={fmt} editable />
-            <Slider label="Annual Step-up" value={su} onChange={setSu} min={0} max={20} step={1} suffix="%" />
-            <Slider label="Expected Returns" value={ret} onChange={setRet} min={8} max={15} step={0.5} suffix="%" />
-            <Slider label="Invest Years" value={yrs} onChange={setYrs} min={10} max={35} step={1} suffix=" yrs" />
-            <Slider label="Starting Age" value={age} onChange={setAge} min={18} max={45} step={1} suffix=" yrs" />
-            <Slider label="Post-Ret Returns" value={pret} onChange={setPret} min={5} max={10} step={0.5} suffix="%" />
-            <Slider label="Retirement Yrs" value={ryr} onChange={setRyr} min={15} max={60} step={1} suffix=" yrs" />
+            <Slider label="Annual Step-up" value={su} onChange={setSu} min={0} max={20} step={1} suffix="%" editable />
+            <Slider label="Expected Returns" value={ret} onChange={setRet} min={8} max={15} step={0.5} suffix="%" editable />
+            <Slider label="Invest Years" value={yrs} onChange={setYrs} min={10} max={35} step={1} suffix=" yrs" editable />
+            <Slider label="Starting Age" value={age} onChange={setAge} min={18} max={45} step={1} suffix=" yrs" editable />
+            <Slider label="Post-Ret Returns" value={pret} onChange={setPret} min={5} max={10} step={0.5} suffix="%" editable />
+            <Slider label="Retirement Yrs" value={ryr} onChange={setRyr} min={15} max={60} step={1} suffix=" yrs" editable />
             <Slider label="Monthly Expenses Now" value={exp} onChange={setExp} min={10000} max={300000} step={5000} prefix="₹" format={fmt} />
           </div>
           <div className="mt-5 pt-5 flex flex-wrap gap-3" style={{ borderTop: '1px solid var(--border)' }}>
@@ -1570,13 +1570,13 @@ function LSCalc({ exp, setExp }: any) {
       <FadeUp>
         <GlassCard className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Slider label="Lumpsum Amount" value={ls} onChange={setLs} min={1000000} max={100000000} step={500000} format={fmtC} />
-            <Slider label="Annual Top-up" value={tu} onChange={setTu} min={0} max={2000000} step={50000} format={fmtC} />
-            <Slider label="Expected Returns" value={ret} onChange={setRet} min={8} max={15} step={0.5} suffix="%" />
-            <Slider label="Invest Years" value={yrs} onChange={setYrs} min={5} max={35} step={1} suffix=" yrs" />
-            <Slider label="Current Age" value={age} onChange={setAge} min={18} max={55} step={1} suffix=" yrs" />
-            <Slider label="Post-Ret Returns" value={pret} onChange={setPret} min={5} max={10} step={0.5} suffix="%" />
-            <Slider label="Retirement Yrs" value={ryr} onChange={setRyr} min={15} max={60} step={1} suffix=" yrs" />
+            <Slider label="Lumpsum Amount" value={ls} onChange={setLs} min={1000000} max={100000000} step={500000} format={fmtC} editable />
+            <Slider label="Annual Top-up" value={tu} onChange={setTu} min={0} max={2000000} step={50000} format={fmtC} editable />
+            <Slider label="Expected Returns" value={ret} onChange={setRet} min={8} max={15} step={0.5} suffix="%" editable />
+            <Slider label="Invest Years" value={yrs} onChange={setYrs} min={5} max={35} step={1} suffix=" yrs" editable />
+            <Slider label="Current Age" value={age} onChange={setAge} min={18} max={55} step={1} suffix=" yrs" editable />
+            <Slider label="Post-Ret Returns" value={pret} onChange={setPret} min={5} max={10} step={0.5} suffix="%" editable />
+            <Slider label="Retirement Yrs" value={ryr} onChange={setRyr} min={15} max={60} step={1} suffix=" yrs" editable />
             <Slider label="Monthly Expenses Now" value={exp} onChange={setExp} min={10000} max={300000} step={5000} prefix="₹" format={fmt} />
           </div>
           <div className="mt-5 pt-5 flex flex-wrap gap-3" style={{ borderTop: '1px solid var(--border)' }}>
@@ -1731,16 +1731,37 @@ export default function App() {
         <Phone className="w-5 h-5" /><div><div className="font-bold">+91 90352 54332</div><div className="text-xs opacity-80">Opens dialer on your phone!</div></div>
       </div>
 
-      {/* Floating call */}
-      <motion.button onClick={() => { window.open('tel:+919035254332', '_self'); showCallToast(); }}
-        className="fixed bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-bold text-sm text-slate-900"
-        style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 8px 32px rgba(245,158,11,0.45)' }}
-        whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(245,158,11,0.6)' }} whileTap={{ scale: 0.95 }}
-        animate={{ boxShadow: ['0 0 0 0 rgba(245,158,11,0.55)', '0 0 0 14px rgba(245,158,11,0)', '0 0 0 0 rgba(245,158,11,0)'] }}
-        transition={{ boxShadow: { duration: 2, repeat: Infinity }, scale: { type: 'spring', stiffness: 400 } }}>
-        <Phone className="w-4 h-4" />
-        <span>Call Us</span>
-      </motion.button>
+      {/* Floating call — shown on calculator page (home page has its own) */}
+      {isCalc && (
+        <>
+          {/* Mobile sticky bottom bar */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 flex gap-2"
+            style={{background:'rgba(6,11,20,0.95)',backdropFilter:'blur(16px)',borderTop:'1px solid #1e293b'}}>
+            <a href="tel:+919035254332"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-black text-white"
+              style={{background:'linear-gradient(135deg,#10b981,#059669)',boxShadow:'0 4px 16px rgba(16,185,129,0.3)'}}>
+              Get Free Call Back →
+            </a>
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 rounded-full animate-ping" style={{background:'rgba(16,185,129,0.45)'}}/>
+              <a href="tel:+919035254332"
+                className="relative flex items-center justify-center w-12 h-12 rounded-full z-10"
+                style={{background:'linear-gradient(135deg,#10b981,#059669)',boxShadow:'0 0 18px rgba(16,185,129,0.55)'}}>
+                <PhoneCall style={{width:'20px',height:'20px',color:'#fff',fill:'none',stroke:'#fff',strokeWidth:'2'}}/>
+              </a>
+            </div>
+          </div>
+          {/* Desktop floating call button */}
+          <div className="hidden md:flex fixed bottom-6 right-6 z-50 items-center">
+            <div className="absolute inset-0 rounded-full animate-ping" style={{background:'rgba(16,185,129,0.35)'}}/>
+            <a href="tel:+919035254332"
+              className="relative flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-2xl hover:scale-105 transition z-10"
+              style={{background:'linear-gradient(135deg,#10b981,#059669)',boxShadow:'0 0 24px rgba(16,185,129,0.5)'}}>
+              <Phone style={{width:'16px',height:'16px',color:'#fff',fill:'none',stroke:'#fff',strokeWidth:'2'}}/><span className="text-sm">Call us now</span>
+            </a>
+          </div>
+        </>
+      )}
 
       {/* Nav */}
       <motion.nav className="sticky top-0 z-40 w-full" initial={{ y: -80 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }}
