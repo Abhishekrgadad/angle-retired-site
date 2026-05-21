@@ -1992,6 +1992,7 @@ export default function App() {
                   <p className="text-xs text-amber-400 italic mt-1">Learn to Earn</p>
                 </div>
               </div>
+              <p className="text-sm text-slate-500">AMFI-registered. We deal exclusively in SEBI regulated investment products.</p>
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-300 mb-4">Connect</p>
