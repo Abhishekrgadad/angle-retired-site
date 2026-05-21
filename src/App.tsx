@@ -906,25 +906,13 @@ function ChartCard({ title, children }: any) {
   );
 }
 
-function ExpenseRow({ icon, label, value, total, color, onChange }: any) {
-  const [editing, setEditing] = useState(false);
-  const [raw, setRaw] = useState(String(value));
-  const commit = () => { onChange(parseInt(raw) || 0); setEditing(false); };
+function ExpenseRow({ icon, label, value, total, color }: any) {
   const pct = Math.min(value / total * 100, 100);
   return (
-    <div className="group">
+    <div>
       <div className="flex justify-between items-center mb-1.5">
         <div className="flex items-center gap-2 text-sm text-slate-300">{icon}<span>{label}</span></div>
-        {editing
-          ? <div className="flex items-center gap-1"><span className="text-xs text-slate-400">₹</span>
-            <input autoFocus type="number" value={raw} onChange={e => setRaw(e.target.value)}
-              onBlur={commit} onKeyDown={(e: any) => (e.key === 'Enter' || e.key === 'Escape') && commit()}
-              className="w-28 rounded px-2 py-0.5 text-sm text-right focus:outline-none border border-amber-500"
-              style={{ background: 'var(--input-bg)', color: 'var(--text)' }} /></div>
-          : <button onClick={() => { setRaw(String(value)); setEditing(true); }} className="flex items-center gap-1.5 group/btn">
-            <span className="text-sm font-semibold">₹{fmt(value)}</span>
-            <span className="text-xs text-slate-600 group-hover/btn:text-amber-400 transition">✏</span>
-          </button>}
+        <span className="text-sm font-semibold">₹{fmt(value)}</span>
       </div>
       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--track-bg)' }}>
         <motion.div className={`h-full ${color} rounded-full`}
@@ -936,27 +924,20 @@ function ExpenseRow({ icon, label, value, total, color, onChange }: any) {
   );
 }
 
-function ExpensePanel({ infExp, customExp, setCustomExp, years }: any) {
-  const upd = (k: string, v: number) => setCustomExp((p: any) => ({ ...(p || { food: infExp.food, util: infExp.util, health: infExp.health, leisure: infExp.leisure, buf: infExp.buf }), [k]: v }));
+function ExpensePanel({ infExp, years }: any) {
   return (
     <GlassCard className="p-6 flex flex-col gap-4">
-      <div>
-        <p className="text-xs uppercase tracking-widest text-slate-500 mb-0.5">Monthly expenses in {years} yrs (8% inflation)</p>
-        <p className="text-xs text-slate-600 mt-0.5">Tap any amount to edit ✏</p>
-      </div>
+      <p className="text-xs uppercase tracking-widest text-slate-500">Monthly expenses in {years} yrs (8% inflation)</p>
       <div className="flex flex-col gap-3">
-        <ExpenseRow icon={<Coins className="w-4 h-4" />} label="Food & Groceries" value={infExp.food} total={infExp.total} color="bg-emerald-500" onChange={(v: number) => upd('food', v)} />
-        <ExpenseRow icon={<Home className="w-4 h-4" />} label="Utilities & Housing" value={infExp.util} total={infExp.total} color="bg-sky-500" onChange={(v: number) => upd('util', v)} />
-        <ExpenseRow icon={<Heart className="w-4 h-4" />} label="Healthcare (10% inflation)" value={infExp.health} total={infExp.total} color="bg-rose-500" onChange={(v: number) => upd('health', v)} />
-        <ExpenseRow icon={<Plane className="w-4 h-4" />} label="Leisure & Travel" value={infExp.leisure} total={infExp.total} color="bg-violet-500" onChange={(v: number) => upd('leisure', v)} />
-        <ExpenseRow icon={<Shield className="w-4 h-4" />} label="Emergency Buffer" value={infExp.buf} total={infExp.total} color="bg-amber-500" onChange={(v: number) => upd('buf', v)} />
+        <ExpenseRow icon={<Coins className="w-4 h-4" />} label="Food & Groceries" value={infExp.food} total={infExp.total} color="bg-emerald-500" />
+        <ExpenseRow icon={<Home className="w-4 h-4" />} label="Utilities & Housing" value={infExp.util} total={infExp.total} color="bg-sky-500" />
+        <ExpenseRow icon={<Heart className="w-4 h-4" />} label="Healthcare (10% inflation)" value={infExp.health} total={infExp.total} color="bg-rose-500" />
+        <ExpenseRow icon={<Plane className="w-4 h-4" />} label="Leisure & Travel" value={infExp.leisure} total={infExp.total} color="bg-violet-500" />
+        <ExpenseRow icon={<Shield className="w-4 h-4" />} label="Emergency Buffer" value={infExp.buf} total={infExp.total} color="bg-amber-500" />
       </div>
       <div className="flex justify-between items-center pt-4" style={{ borderTop: '1px solid var(--border)' }}>
         <span className="font-semibold text-white">Total Monthly Need</span>
-        <div className="text-right">
-          <span className="text-xl font-black text-white">₹{fmt(infExp.total)}</span>
-          {customExp && <button onClick={() => setCustomExp(null)} className="block text-xs text-slate-500 hover:text-amber-400 mt-0.5 transition">↺ reset to auto</button>}
-        </div>
+        <span className="text-xl font-black text-white">₹{fmt(infExp.total)}</span>
       </div>
     </GlassCard>
   );
@@ -1502,7 +1483,7 @@ function SIPCalc({ exp, setExp }: any) {
           </div>
         </FadeUp>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <FadeUp delay={0.1}><ExpensePanel infExp={iExp} customExp={cExp} setCustomExp={setCExp} years={yrs} /></FadeUp>
+          <FadeUp delay={0.1}><ExpensePanel infExp={iExp} years={yrs} /></FadeUp>
           <FadeUp delay={0.2}>
             <GlassCard className="p-6 flex flex-col h-full">
               <p className="text-xs uppercase tracking-widest text-slate-500 mb-5">The Bottom Line</p>
@@ -1664,7 +1645,7 @@ function LSCalc({ exp, setExp }: any) {
           </div>
         </FadeUp>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <FadeUp delay={0.1}><ExpensePanel infExp={iExp} customExp={cExp} setCustomExp={setCExp} years={yrs} /></FadeUp>
+          <FadeUp delay={0.1}><ExpensePanel infExp={iExp} years={yrs} /></FadeUp>
           <FadeUp delay={0.2}>
             <GlassCard className="p-6 flex flex-col h-full">
               <p className="text-xs uppercase tracking-widest text-slate-500 mb-5">The Bottom Line</p>
