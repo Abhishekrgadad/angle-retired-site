@@ -821,21 +821,39 @@ function GlassCard({ children, className = '', glow = '' }: any) {
   );
 }
 
-function Slider({ label, value, onChange, min, max, step, suffix = '', prefix = '', format }: any) {
-  const pct = ((value - min) / (max - min)) * 100;
+function Slider({ label, value, onChange, min, max, step, suffix = '', prefix = '', format, editable = false }: any) {
+  const [inputVal, setInputVal] = useState('');
+  const [editing, setEditing] = useState(false);
+  const pct = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
         <span className="text-xs text-slate-400 uppercase tracking-wider">{label}</span>
-        <motion.span key={String(value)} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-          className="text-xs font-bold text-amber-300 tabular-nums">
-          {prefix}{format ? format(value) : value}{suffix}
-        </motion.span>
+        {editable ? (
+          <input
+            type="text"
+            value={editing ? inputVal : (format ? format(value) : `${prefix}${value}${suffix}`)}
+            onFocus={() => { setEditing(true); setInputVal(String(value)); }}
+            onChange={e => setInputVal(e.target.value)}
+            onBlur={() => {
+              setEditing(false);
+              const n = parseFloat(String(inputVal).replace(/[^0-9.]/g, ''));
+              if (!isNaN(n)) onChange(Math.min(max, Math.max(min, n)));
+            }}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            className="text-xs font-bold text-amber-300 tabular-nums bg-transparent border-b border-amber-300/40 text-right w-28 outline-none"
+          />
+        ) : (
+          <motion.span key={String(value)} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+            className="text-xs font-bold text-amber-300 tabular-nums">
+            {prefix}{format ? format(value) : value}{suffix}
+          </motion.span>
+        )}
       </div>
       <div className="relative h-1.5 rounded-full" style={{ background: 'var(--track-bg)' }}>
         <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-75"
           style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#b45309,#f59e0b)', boxShadow: '0 0 8px rgba(245,158,11,0.4)' }} />
-        <input type="range" min={min} max={max} step={step} value={value}
+        <input type="range" min={min} max={max} step={step} value={Math.min(max, value)}
           onChange={e => onChange(parseFloat(e.target.value))}
           className="absolute inset-0 w-full cursor-pointer opacity-0" style={{ height: '100%', zIndex: 2 }} />
       </div>
@@ -1362,7 +1380,7 @@ function SIPCalc({ exp, setExp }: any) {
       <FadeUp>
         <GlassCard className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Slider label="Monthly SIP" value={sip} onChange={setSip} min={1000} max={1000000} step={1000} prefix="₹" format={fmt} />
+            <Slider label="Monthly SIP" value={sip} onChange={setSip} min={1000} max={500000} step={1000} prefix="₹" format={fmt} editable />
             <Slider label="Annual Step-up" value={su} onChange={setSu} min={0} max={20} step={1} suffix="%" />
             <Slider label="Expected Returns" value={ret} onChange={setRet} min={8} max={15} step={0.5} suffix="%" />
             <Slider label="Invest Years" value={yrs} onChange={setYrs} min={10} max={35} step={1} suffix=" yrs" />
