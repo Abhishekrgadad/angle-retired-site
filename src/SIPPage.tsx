@@ -68,13 +68,12 @@ function SliderInput({ label, value, onChange, min, max, step, suffix = '', pref
   );
 }
 
-function DonutLabel({ viewBox, corpus }: any) {
-  const { cx, cy } = viewBox;
+function DonutCenter({ corpus }: { corpus: number }) {
   return (
-    <text textAnchor="middle" dominantBaseline="middle">
-      <tspan x={cx} y={cy - 10} fill="#94a3b8" fontSize="10" fontWeight="600" letterSpacing="1.5">CORPUS</tspan>
-      <tspan x={cx} y={cy + 12} fill="#f9fafb" fontSize="17" fontWeight="900">{fmtC(corpus)}</tspan>
-    </text>
+    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+      <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600 }}>Corpus</p>
+      <p style={{ fontSize: '17px', color: '#f9fafb', fontWeight: 900, lineHeight: 1.2 }}>{fmtC(corpus)}</p>
+    </div>
   );
 }
 
@@ -221,7 +220,7 @@ export function SIPPage() {
             <FadeUp delay={0.15}>
               <GlassCard className="p-6">
                 <p className="text-xs uppercase tracking-widest text-slate-500 mb-4">Corpus Breakdown</p>
-                <div style={{ height: 240 }}>
+                <div className="relative" style={{ height: 240 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -231,7 +230,6 @@ export function SIPPage() {
                         paddingAngle={3}
                         dataKey="value"
                         labelLine={false}
-                        label={(props: any) => <DonutLabel viewBox={props.viewBox} corpus={corpus} />}
                         isAnimationActive
                       >
                         {donutData.map((entry, i) => (
@@ -241,6 +239,7 @@ export function SIPPage() {
                       <Tooltip content={<CustomTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
+                  <DonutCenter corpus={corpus} />
                 </div>
                 {/* Legend */}
                 <div className="flex justify-center gap-8 mt-3">
