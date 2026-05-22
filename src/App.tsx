@@ -5,6 +5,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Play, CheckCircle2, Calendar, Youtube, Star, ChevronDown, ChevronRight, Phone, PhoneCall, User, Zap, BarChart2, Briefcase, Menu, X } from 'lucide-react';
 // @ts-ignore
 import LandingPage from './LandingPage.jsx';
+import { SIPPage } from './SIPPage';
+import { LumpsumPage } from './LumpsumPage';
 
 const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
 
@@ -1674,6 +1676,9 @@ export default function App() {
   const location = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   const isCalc = location.pathname === '/calculator';
+  const isSIPPage = location.pathname === '/sip';
+  const isLSPage = location.pathname === '/lumpsum';
+  const isAnyCalc = isCalc || isSIPPage || isLSPage;
   const [calcMode, setCalcMode] = useState<'sip' | 'lumpsum'>('sip');
   const routeMode = isCalc ? calcMode : 'home';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1712,8 +1717,8 @@ export default function App() {
         <Phone className="w-5 h-5" /><div><div className="font-bold">+91 90352 54332</div><div className="text-xs opacity-80">Opens dialer on your phone!</div></div>
       </div>
 
-      {/* Floating call — shown on calculator page (home page has its own) */}
-      {isCalc && (
+      {/* Floating call — shown on calculator pages (home page has its own) */}
+      {isAnyCalc && (
         <>
           {/* Mobile sticky bottom bar */}
           <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 flex gap-2"
@@ -1759,7 +1764,7 @@ export default function App() {
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            {[['/', 'Home'], ['/calculator', 'Retirement Calculator']].map(([to, label]) => (
+            {[['/', 'Home'], ['/calculator', 'Retirement Calculator'], ['/sip', 'SIP'], ['/lumpsum', 'Lumpsum']].map(([to, label]) => (
               <NavLink key={to} to={to} className={({ isActive }: { isActive: boolean }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
                 {label}
               </NavLink>
@@ -1792,7 +1797,7 @@ export default function App() {
               className="md:hidden overflow-hidden"
               style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-soft)', backdropFilter: 'blur(20px)' }}>
               <div className="flex flex-col px-4 py-4 gap-1">
-                {[['/', 'Home'], ['/calculator', 'Retirement Calculator']].map(([to, label]) => (
+                {[['/', 'Home'], ['/calculator', 'Retirement Calculator'], ['/sip', 'SIP Calculator'], ['/lumpsum', 'Lumpsum Calculator']].map(([to, label]) => (
                   <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }: { isActive: boolean }) => `px-3 py-3 rounded-xl text-sm font-medium transition ${isActive ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
                     {label}
@@ -1811,7 +1816,7 @@ export default function App() {
         </AnimatePresence>
       </motion.nav>
 
-      {!isCalc && (
+      {!isAnyCalc && (
         <LandingPage />
       )}
 
@@ -1821,12 +1826,52 @@ export default function App() {
           <PageContainer>
             {calcMode === 'sip' ? <SIPCalc exp={exp} setExp={setExp} /> : <LSCalc exp={exp} setExp={setExp} />}
           </PageContainer>
+
+          {/* SIP & Lumpsum standalone calculator links */}
+          <section className="w-full px-4 sm:px-6 py-10 md:py-14" style={{ borderTop: '1px solid var(--border)' }}>
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-bold mb-3">More Calculators</p>
+                <h2 className="text-2xl md:text-3xl font-black text-white mb-2">Quick Investment Calculators</h2>
+                <p className="text-slate-400 text-sm">Simple, focused tools — no retirement modelling, just instant numbers.</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                <Link to="/sip"
+                  className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02]"
+                  style={{ background: 'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.03))', border: '1px solid rgba(245,158,11,0.25)' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                    <TrendingUp className="w-6 h-6" style={{ color: '#fbbf24' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-white text-base">SIP Calculator</p>
+                    <p className="text-slate-400 text-xs mt-0.5">Monthly SIP with step-up & top-up</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition flex-shrink-0" />
+                </Link>
+                <Link to="/lumpsum"
+                  className="group flex items-center gap-4 p-5 rounded-2xl transition hover:scale-[1.02]"
+                  style={{ background: 'linear-gradient(135deg,rgba(139,92,246,0.08),rgba(139,92,246,0.03))', border: '1px solid rgba(139,92,246,0.25)' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(139,92,246,0.12)' }}>
+                    <Coins className="w-6 h-6" style={{ color: '#a78bfa' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-white text-base">Lumpsum Calculator</p>
+                    <p className="text-slate-400 text-xs mt-0.5">One-time investment with annual top-up</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-violet-400 transition flex-shrink-0" />
+                </Link>
+              </div>
+            </div>
+          </section>
         </>
       )}
 
+      {isSIPPage && <SIPPage />}
+      {isLSPage && <LumpsumPage />}
+
 
       {/* Calculator CTA */}
-      {!isCalc && (
+      {!isAnyCalc && (
       <section className="w-full px-4 sm:px-6 py-10 md:py-14">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -1853,7 +1898,7 @@ export default function App() {
       )}
 
       {/* FAQ */}
-      {!isCalc && (
+      {!isAnyCalc && (
       <section className="w-full px-4 sm:px-6 pt-0 pb-14 md:pb-24 relative overflow-hidden">
 
         {/* Floating background decoration */}
