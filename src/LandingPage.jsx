@@ -167,7 +167,7 @@ export default function App() {
                   <div className="grid grid-cols-1 gap-2 md:gap-2.5">
                     {[
                       {v:'stocks',l:'I have stocks in my Demat',d:'Want to build a proper stock portfolio',Icon:LineChart},
-                      {v:'starting',l:'Just starting out',d:"Haven't invested yet or new to SIP/Insurance",Icon:Target},
+                      {v:'starting',l:'Need insurance',d:'health/term insurance',Icon:Target},
                       {v:'sip-growing',l:'Have SIPs running',d:'Want to add more or explore options',Icon:TrendingDown},
                       {v:'hni',l:'HNI — ₹50L+ portfolio',d:'Looking for PMS / AIF access',Icon:Crown},
                     ].map(opt=>(

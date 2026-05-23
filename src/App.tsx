@@ -402,7 +402,7 @@ function HomePage() {
   const [heroDone, setHeroDone] = useState(false);
 
   const heroJourneys = [
-    { v: 'starting',    l: 'Just starting out',                        d: "Haven't invested yet or new to SIP" },
+    { v: 'starting',    l: 'Need insurance',                           d: 'health/term insurance' },
     { v: 'sip-running', l: 'Have SIPs running',                       d: 'Want to add more or explore options' },
     { v: 'stocks',      l: 'Want to build a proper stock portfolio',   d: 'I have stocks in my Demat' },
     { v: 'pms',         l: 'Looking for PMS / AIF access',            d: '' },
@@ -1724,8 +1724,8 @@ export default function App() {
           <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 flex gap-2"
             style={{background:'rgba(6,11,20,0.95)',backdropFilter:'blur(16px)',borderTop:'1px solid #1e293b'}}>
             <a href="tel:+919035254332"
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-black text-white"
-              style={{background:'linear-gradient(135deg,#10b981,#059669)',boxShadow:'0 4px 16px rgba(16,185,129,0.3)'}}>
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-black text-slate-900"
+              style={{background:'linear-gradient(135deg,#fbbf24,#f59e0b)',boxShadow:'0 4px 16px rgba(245,158,11,0.3)'}}>
               Get Free Call Back →
             </a>
             <div className="relative flex-shrink-0">
