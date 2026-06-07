@@ -7,6 +7,7 @@ import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Pla
 import LandingPage from './LandingPage.jsx';
 import { SIPPage } from './SIPPage';
 import { LumpsumPage } from './LumpsumPage';
+import NewsPage from './NewsPage';
 
 const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
 
@@ -1678,6 +1679,7 @@ export default function App() {
   const isCalc = location.pathname === '/calculator';
   const isSIPPage = location.pathname === '/sip';
   const isLSPage = location.pathname === '/lumpsum';
+  const isNewsPage = location.pathname === '/news';
   const isAnyCalc = isCalc || isSIPPage || isLSPage;
   const [calcMode, setCalcMode] = useState<'sip' | 'lumpsum'>('sip');
   const routeMode = isCalc ? calcMode : 'home';
@@ -1764,7 +1766,7 @@ export default function App() {
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            {[['/', 'Home'], ['/calculator', 'Retirement Calculator'], ['/sip', 'SIP'], ['/lumpsum', 'Lumpsum']].map(([to, label]) => (
+            {[['/', 'Home'], ['/calculator', 'Retirement Calculator'], ['/sip', 'SIP'], ['/lumpsum', 'Lumpsum'], ['/news', 'News']].map(([to, label]) => (
               <NavLink key={to} to={to} className={({ isActive }: { isActive: boolean }) => `text-sm font-medium transition ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
                 {label}
               </NavLink>
@@ -1797,7 +1799,7 @@ export default function App() {
               className="md:hidden overflow-hidden"
               style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-soft)', backdropFilter: 'blur(20px)' }}>
               <div className="flex flex-col px-4 py-4 gap-1">
-                {[['/', 'Home'], ['/calculator', 'Retirement Calculator'], ['/sip', 'SIP Calculator'], ['/lumpsum', 'Lumpsum Calculator']].map(([to, label]) => (
+                {[['/', 'Home'], ['/calculator', 'Retirement Calculator'], ['/sip', 'SIP Calculator'], ['/lumpsum', 'Lumpsum Calculator'], ['/news', 'News']].map(([to, label]) => (
                   <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }: { isActive: boolean }) => `px-3 py-3 rounded-xl text-sm font-medium transition ${isActive ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
                     {label}
@@ -1816,9 +1818,11 @@ export default function App() {
         </AnimatePresence>
       </motion.nav>
 
-      {!isAnyCalc && (
+      {!isAnyCalc && !isNewsPage && (
         <LandingPage />
       )}
+
+      {isNewsPage && <NewsPage />}
 
       {isCalc && (
         <>
@@ -1871,7 +1875,7 @@ export default function App() {
 
 
       {/* Calculator CTA */}
-      {!isAnyCalc && (
+      {!isAnyCalc && !isNewsPage && (
       <section className="w-full px-4 sm:px-6 py-10 md:py-14">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -1922,7 +1926,7 @@ export default function App() {
       )}
 
       {/* FAQ */}
-      {!isAnyCalc && (
+      {!isAnyCalc && !isNewsPage && (
       <section className="w-full px-4 sm:px-6 pt-0 pb-14 md:pb-24 relative overflow-hidden">
 
         {/* Floating background decoration */}
