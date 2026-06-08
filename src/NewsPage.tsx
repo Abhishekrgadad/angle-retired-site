@@ -51,8 +51,13 @@ async function fetchGNews(q: string): Promise<Article[]> {
     apikey: GNEWS_KEY!,
   });
   const res = await fetch(`https://gnews.io/api/v4/search?${params}`);
-  if (!res.ok) throw new Error(`GNews ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error('[GNews] HTTP', res.status, body);
+    throw new Error(`GNews ${res.status}: ${body}`);
+  }
   const data = await res.json();
+  console.log('[GNews] ok — articles:', data.articles?.length ?? 0, 'key present:', !!GNEWS_KEY);
   return (data.articles ?? []) as Article[];
 }
 
@@ -176,6 +181,7 @@ export default function NewsPage() {
 
     const cat = CATEGORIES.find(c => c.id === catId)!;
     try {
+      console.log('[NewsPage] fetching category:', catId, '| key:', GNEWS_KEY ? GNEWS_KEY.slice(0,6) + '…' : 'MISSING');
       const raw = await fetchGNews(cat.q);
       if (id !== reqId.current) return;
 
@@ -207,7 +213,8 @@ export default function NewsPage() {
           return next;
         });
       });
-    } catch {
+    } catch (err) {
+      console.error('[NewsPage] fetch failed:', err);
       if (id !== reqId.current) return;
       setError('failed');
       setLoading(false);
