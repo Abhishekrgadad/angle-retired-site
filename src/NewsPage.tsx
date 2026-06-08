@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, ExternalLink, Clock, Newspaper } from 'lucide-react';
+import { RefreshCw, ExternalLink, Clock } from 'lucide-react';
 
-const GNEWS_KEY = import.meta.env.VITE_GNEWS_KEY as string | undefined;
 const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 
 interface Article {
@@ -42,22 +41,14 @@ async function translateKn(text: string): Promise<string> {
 }
 
 async function fetchGNews(q: string): Promise<Article[]> {
-  const params = new URLSearchParams({
-    q,
-    lang: 'en',
-    country: 'in',
-    max: '12',
-    sortby: 'publishedAt',
-    apikey: GNEWS_KEY!,
-  });
-  const res = await fetch(`https://gnews.io/api/v4/search?${params}`);
+  const params = new URLSearchParams({ q, max: '12' });
+  const res = await fetch(`/api/news?${params}`);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error('[GNews] HTTP', res.status, body);
-    throw new Error(`GNews ${res.status}: ${body}`);
+    console.error('[GNews proxy] HTTP', res.status, body);
+    throw new Error(`GNews ${res.status}`);
   }
   const data = await res.json();
-  console.log('[GNews] ok — articles:', data.articles?.length ?? 0, 'key present:', !!GNEWS_KEY);
   return (data.articles ?? []) as Article[];
 }
 
@@ -162,7 +153,7 @@ export default function NewsPage() {
   const [category, setCategory] = useState<CategoryId>('all');
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<'no_key' | 'failed' | ''>('');
+  const [error, setError] = useState<'failed' | ''>('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const reqId = useRef(0);
   const cache = useRef<Record<string, string>>({});
@@ -173,15 +164,8 @@ export default function NewsPage() {
     setError('');
     setArticles([]);
 
-    if (!GNEWS_KEY) {
-      setError('no_key');
-      setLoading(false);
-      return;
-    }
-
     const cat = CATEGORIES.find(c => c.id === catId)!;
     try {
-      console.log('[NewsPage] fetching category:', catId, '| key:', GNEWS_KEY ? GNEWS_KEY.slice(0,6) + '…' : 'MISSING');
       const raw = await fetchGNews(cat.q);
       if (id !== reqId.current) return;
 
@@ -214,7 +198,6 @@ export default function NewsPage() {
         });
       });
     } catch (err) {
-      console.error('[NewsPage] fetch failed:', err);
       if (id !== reqId.current) return;
       setError('failed');
       setLoading(false);
@@ -301,32 +284,6 @@ export default function NewsPage() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-            </motion.div>
-          )}
-
-          {!loading && error === 'no_key' && (
-            <motion.div key="nokey"
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-24 text-center gap-5">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                <Newspaper className="w-8 h-8" style={{ color: '#f59e0b' }} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-                  API ಕೀ ಸಂರಚಿಸಿ
-                </h3>
-                <p className="text-sm max-w-xs" style={{ color: 'var(--muted)' }}>
-                  ಸುದ್ದಿ ಲೋಡ್ ಮಾಡಲು{' '}
-                  <code className="font-mono" style={{ color: '#fbbf24' }}>.env</code>{' '}
-                  ಫೈಲ್‌ನಲ್ಲಿ{' '}
-                  <code className="font-mono" style={{ color: '#fbbf24' }}>VITE_GNEWS_KEY</code>{' '}
-                  ಸೇರಿಸಿ
-                </p>
-                <p className="text-xs mt-3" style={{ color: 'var(--muted)', opacity: 0.55 }}>
-                  gnews.io ನಲ್ಲಿ ಉಚಿತ API ಕೀ ಪಡೆಯಿರಿ
-                </p>
-              </div>
             </motion.div>
           )}
 
