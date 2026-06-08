@@ -1,4 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import https from 'https';
+
+function httpsGet(url: string): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', () => resolve({ status: res.statusCode ?? 500, body }));
+    }).on('error', reject);
+  });
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { q, max = '12' } = req.query;
@@ -21,9 +32,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     apikey: key,
   });
 
-  const upstream = await fetch(`https://gnews.io/api/v4/search?${params}`);
-  const data = await upstream.json();
-
-  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
-  return res.status(upstream.status).json(data);
+  try {
+    const { status, body } = await httpsGet(`https://gnews.io/api/v4/search?${params}`);
+    const data = JSON.parse(body);
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    return res.status(status).json(data);
+  } catch (err) {
+    return res.status(502).json({ error: 'upstream fetch failed', detail: String(err) });
+  }
 }
