@@ -17,13 +17,13 @@ interface Article {
 }
 
 const CATEGORIES = [
-  { id: 'all',     kn: 'ಎಲ್ಲಾ',               q: 'India stock market finance investment economy' },
-  { id: 'stocks',  kn: 'ಷೇರು ಮಾರುಕಟ್ಟೆ',     q: 'NSE BSE Nifty Sensex stocks India market' },
-  { id: 'mf',      kn: 'ಮ್ಯೂಚುಯಲ್ ಫಂಡ್',      q: 'mutual funds SIP AMC AMFI India investment' },
-  { id: 'fno',     kn: 'F&O',                   q: 'futures options F&O derivatives trading India' },
-  { id: 'economy', kn: 'ಆರ್ಥಿಕತೆ',             q: 'India economy GDP inflation budget government' },
-  { id: 'global',  kn: 'ಜಾಗತಿಕ ಮಾರುಕಟ್ಟೆ',    q: 'global markets Dow Jones Nasdaq gold commodity' },
-  { id: 'rbi',     kn: 'RBI / ನೀತಿ',           q: 'RBI repo rate monetary policy India finance' },
+  { id: 'all',     kn: 'ಎಲ್ಲಾ',               q: 'India finance market' },
+  { id: 'stocks',  kn: 'ಷೇರು ಮಾರುಕಟ್ಟೆ',     q: 'Nifty Sensex India' },
+  { id: 'mf',      kn: 'ಮ್ಯೂಚುಯಲ್ ಫಂಡ್',      q: 'mutual funds India' },
+  { id: 'fno',     kn: 'F&O',                   q: 'India derivatives trading' },
+  { id: 'economy', kn: 'ಆರ್ಥಿಕತೆ',             q: 'India economy GDP' },
+  { id: 'global',  kn: 'ಜಾಗತಿಕ ಮಾರುಕಟ್ಟೆ',    q: 'global markets gold' },
+  { id: 'rbi',     kn: 'RBI / ನೀತಿ',           q: 'RBI India' },
 ] as const;
 
 type CategoryId = (typeof CATEGORIES)[number]['id'];
