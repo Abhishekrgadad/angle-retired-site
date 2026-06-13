@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, ExternalLink, Clock } from 'lucide-react';
+import { RefreshCw, ExternalLink, Clock, X, Sparkles, FileText, Loader2 } from 'lucide-react';
 
 const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 
@@ -14,6 +14,11 @@ interface Article {
   titleKn?: string;
   descKn?: string;
   translating?: boolean;
+}
+
+interface ArticleDetail {
+  summary: string | null;
+  content: string;
 }
 
 const CATEGORIES = [
@@ -45,11 +50,18 @@ async function fetchGNews(q: string): Promise<Article[]> {
   const res = await fetch(`/api/news?${params}`);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error('[GNews proxy] HTTP', res.status, body);
-    throw new Error(`GNews ${res.status}`);
+    console.error('[news proxy] HTTP', res.status, body);
+    throw new Error(`news ${res.status}`);
   }
   const data = await res.json();
   return (data.articles ?? []) as Article[];
+}
+
+async function fetchArticleDetail(url: string): Promise<ArticleDetail> {
+  const params = new URLSearchParams({ url });
+  const res = await fetch(`/api/article?${params}`);
+  if (!res.ok) throw new Error(`article fetch ${res.status}`);
+  return res.json();
 }
 
 function timeAgo(iso: string): string {
@@ -84,16 +96,236 @@ function SkeletonCard() {
   );
 }
 
-function NewsCard({ article, idx }: { article: Article; idx: number }) {
+// ── Article Modal ────────────────────────────────────────────────────────────
+
+function ArticleModal({ article, onClose }: { article: Article; onClose: () => void }) {
+  const [detail, setDetail] = useState<ArticleDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+    fetchArticleDetail(article.url)
+      .then(d => { if (!cancelled) { setDetail(d); setLoading(false); } })
+      .catch(e => { if (!cancelled) { setError(String(e)); setLoading(false); } });
+    return () => { cancelled = true; };
+  }, [article.url]);
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const formattedContent = detail?.content
+    ? detail.content
+        .replace(/#{1,6}\s+/g, '')        // strip markdown headings
+        .replace(/\*\*(.+?)\*\*/g, '$1')  // strip bold
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // strip links
+        .replace(/^\s*[-*+]\s+/gm, '• ')  // normalise bullets
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 20)
+        .slice(0, 80)
+        .join('\n\n')
+    : '';
+
   return (
-    <motion.a
-      href={article.url}
-      target="_blank"
-      rel="noreferrer noopener"
+    <AnimatePresence>
+      {/* Backdrop */}
+      <motion.div
+        key="backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+        style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+      >
+        {/* Modal */}
+        <motion.div
+          key="modal"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.25, ease }}
+          onClick={e => e.stopPropagation()}
+          className="relative w-full max-w-2xl flex flex-col rounded-2xl overflow-hidden"
+          style={{
+            background: 'var(--bg)',
+            border: '1px solid rgba(245,158,11,0.2)',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+            maxHeight: '88vh',
+          }}
+        >
+          {/* Sticky header */}
+          <div className="flex items-start justify-between gap-3 p-5 flex-shrink-0"
+            style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 inline-block"
+                style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.2)' }}>
+                {article.source.name}
+              </span>
+              <h2 className="font-bold text-base leading-snug line-clamp-2" style={{ color: 'var(--text)' }}>
+                {article.titleKn || article.title}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <motion.a
+                href={article.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
+                style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', textDecoration: 'none' }}
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span className="hidden sm:block">ಮೂಲ ಲೇಖನ</span>
+              </motion.a>
+              <motion.button
+                onClick={onClose}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}
+              >
+                <X className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Scrollable body */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 flex flex-col gap-6">
+
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#f59e0b' }} />
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>ಲೇಖನ ಮತ್ತು ಸಾರಾಂಶ ತಯಾರಿಸಲಾಗುತ್ತಿದೆ…</p>
+              </div>
+            )}
+
+            {!loading && error && (
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                  ಲೇಖನ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ನೇರ ಲಿಂಕ್ ಮೂಲಕ ಓದಿ.
+                </p>
+                <motion.a
+                  href={article.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  whileHover={{ scale: 1.04 }}
+                  className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full"
+                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#0a1322', textDecoration: 'none' }}
+                >
+                  ಮೂಲ ಲೇಖನ ತೆರೆಯಿರಿ <ExternalLink className="w-3.5 h-3.5" />
+                </motion.a>
+              </div>
+            )}
+
+            {!loading && !error && detail && (
+              <>
+                {/* ── AI Summary Section ── */}
+                <section>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                      style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1))', border: '1px solid rgba(245,158,11,0.25)' }}>
+                      <Sparkles className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#f59e0b' }}>
+                        Claude AI ಸಾರಾಂಶ
+                      </span>
+                    </div>
+                  </div>
+
+                  {detail.summary ? (
+                    <div className="rounded-xl p-4"
+                      style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.12)' }}>
+                      <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--text)' }}>
+                        {detail.summary}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl p-4"
+                      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                      <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                        AI ಸಾರಾಂಶ ಲಭ್ಯವಿಲ್ಲ. ಕೆಳಗಿನ ಸಂಪೂರ್ಣ ಲೇಖನ ಓದಿ.
+                      </p>
+                    </div>
+                  )}
+                </section>
+
+                {/* ── Divider ── */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                    style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                    <FileText className="w-3 h-3" style={{ color: 'var(--muted)' }} />
+                    <span className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>ಸಂಪೂರ್ಣ ಲೇಖನ</span>
+                  </div>
+                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                </div>
+
+                {/* ── Full Article Content ── */}
+                <section>
+                  {formattedContent ? (
+                    <div className="text-sm leading-7 whitespace-pre-line" style={{ color: 'var(--text)', opacity: 0.85 }}>
+                      {formattedContent}
+                    </div>
+                  ) : (
+                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                      ಲೇಖನದ ವಿಷಯ ಲಭ್ಯವಿಲ್ಲ.
+                    </p>
+                  )}
+
+                  <motion.a
+                    href={article.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold"
+                    style={{
+                      background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+                      color: '#0a1322',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 16px rgba(245,158,11,0.3)',
+                    }}
+                  >
+                    ಮೂಲ ಲೇಖನ ಓದಿ
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </motion.a>
+                </section>
+              </>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ── News Card ────────────────────────────────────────────────────────────────
+
+function NewsCard({ article, idx, onOpen }: { article: Article; idx: number; onOpen: () => void }) {
+  return (
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onOpen(); }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: idx * 0.05, ease }}
-      className="group flex flex-col gap-3 rounded-2xl p-5"
+      className="group flex flex-col gap-3 rounded-2xl p-5 cursor-pointer"
       style={{
         background: 'var(--surface)',
         borderWidth: 1,
@@ -101,8 +333,6 @@ function NewsCard({ article, idx }: { article: Article; idx: number }) {
         borderColor: '#1e293b',
         boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
         textDecoration: 'none',
-        cursor: 'pointer',
-        transition: 'border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease',
       }}
       whileHover={{
         y: -4,
@@ -142,12 +372,14 @@ function NewsCard({ article, idx }: { article: Article; idx: number }) {
       {/* Read more */}
       <div className="mt-auto pt-3 flex items-center gap-1.5 text-xs font-semibold"
         style={{ borderTop: '1px solid var(--border)', color: '#f59e0b' }}>
-        ಇನ್ನಷ್ಟು ಓದಿ
-        <ExternalLink className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+        <Sparkles className="w-3 h-3" />
+        AI ಸಾರಾಂಶ ಮತ್ತು ಲೇಖನ ನೋಡಿ
       </div>
-    </motion.a>
+    </motion.div>
   );
 }
+
+// ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function NewsPage() {
   const [category, setCategory] = useState<CategoryId>('all');
@@ -155,6 +387,7 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<'failed' | ''>('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [openArticle, setOpenArticle] = useState<Article | null>(null);
   const reqId = useRef(0);
   const cache = useRef<Record<string, string>>({});
 
@@ -173,7 +406,6 @@ export default function NewsPage() {
       setArticles(raw.map(a => ({ ...a, translating: true })));
       setLoading(false);
 
-      // Translate each card incrementally as translations arrive
       raw.forEach(async (a, i) => {
         const tk = `t:${a.title}`;
         const dk = `d:${a.description ?? ''}`;
@@ -197,7 +429,7 @@ export default function NewsPage() {
           return next;
         });
       });
-    } catch (err) {
+    } catch {
       if (id !== reqId.current) return;
       setError('failed');
       setLoading(false);
@@ -208,6 +440,14 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen w-full" style={{ background: 'var(--bg)' }}>
+
+      {/* Article Modal */}
+      {openArticle && (
+        <ArticleModal
+          article={openArticle}
+          onClose={() => setOpenArticle(null)}
+        />
+      )}
 
       {/* Page header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-6">
@@ -220,7 +460,7 @@ export default function NewsPage() {
               ಹಣಕಾಸು ಸುದ್ದಿ
             </h1>
             <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              ಮಾರುಕಟ್ಟೆ, ಷೇರು, MF ಮತ್ತು ಆರ್ಥಿಕ ಸುದ್ದಿಗಳನ್ನು ಕನ್ನಡದಲ್ಲಿ ಓದಿ
+              ಕಾರ್ಡ್ ಕ್ಲಿಕ್ ಮಾಡಿ — AI ಸಾರಾಂಶ ಮತ್ತು ಸಂಪೂರ್ಣ ಲೇಖನ ನೋಡಿ
             </p>
           </div>
 
@@ -260,13 +500,11 @@ export default function NewsPage() {
                   boxShadow: '0 4px 16px rgba(245,158,11,0.35)',
                   border: 'none',
                   padding: '0.45rem 1rem',
-                  ['--button-glow' as string]: 'rgba(245,158,11,0.45)',
                 } : {
                   background: 'var(--surface)',
                   color: 'var(--muted)',
                   border: '1px solid var(--border)',
                   padding: '0.45rem 1rem',
-                  ['--button-glow' as string]: 'rgba(245,158,11,0.35)',
                 }}>
                 {cat.kn}
               </button>
@@ -319,7 +557,12 @@ export default function NewsPage() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {articles.map((a, i) => (
-                <NewsCard key={a.url} article={a} idx={i} />
+                <NewsCard
+                  key={a.url}
+                  article={a}
+                  idx={i}
+                  onOpen={() => setOpenArticle(a)}
+                />
               ))}
             </motion.div>
           )}
