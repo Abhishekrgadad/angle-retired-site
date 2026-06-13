@@ -180,18 +180,6 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
               </h2>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <motion.a
-                href={article.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', textDecoration: 'none' }}
-              >
-                <ExternalLink className="w-3 h-3" />
-                <span className="hidden sm:block">ಮೂಲ ಲೇಖನ</span>
-              </motion.a>
               <motion.button
                 onClick={onClose}
                 whileHover={{ scale: 1.1 }}
@@ -203,6 +191,34 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
               </motion.button>
             </div>
           </div>
+
+          {/* Ghost source link — bottom-left, faded, reveals on hover */}
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="ghost-source-link"
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '10px',
+              color: 'var(--muted)',
+              textDecoration: 'none',
+              opacity: 0,
+              transition: 'opacity 0.2s ease',
+              zIndex: 10,
+              pointerEvents: 'auto',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.45')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+          >
+            <ExternalLink style={{ width: '10px', height: '10px' }} />
+            {article.source.name}
+          </a>
 
           {/* Scrollable body */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 flex flex-col gap-6">
@@ -217,18 +233,8 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
             {!loading && error && (
               <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
                 <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                  ಲೇಖನ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ನೇರ ಲಿಂಕ್ ಮೂಲಕ ಓದಿ.
+                  ಲೇಖನ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.
                 </p>
-                <motion.a
-                  href={article.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  whileHover={{ scale: 1.04 }}
-                  className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full"
-                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#0a1322', textDecoration: 'none' }}
-                >
-                  ಮೂಲ ಲೇಖನ ತೆರೆಯಿರಿ <ExternalLink className="w-3.5 h-3.5" />
-                </motion.a>
               </div>
             )}
 
@@ -286,23 +292,6 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
                     </p>
                   )}
 
-                  <motion.a
-                    href={article.url}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold"
-                    style={{
-                      background: 'linear-gradient(135deg,#f59e0b,#d97706)',
-                      color: '#0a1322',
-                      textDecoration: 'none',
-                      boxShadow: '0 4px 16px rgba(245,158,11,0.3)',
-                    }}
-                  >
-                    ಮೂಲ ಲೇಖನ ಓದಿ
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </motion.a>
                 </section>
               </>
             )}
