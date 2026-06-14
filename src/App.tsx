@@ -7,7 +7,7 @@ import { TrendingUp, Coins, Home, Heart, Plane, Shield, ArrowDown, Sparkles, Pla
 import LandingPage from './LandingPage.jsx';
 import { SIPPage } from './SIPPage';
 import { LumpsumPage } from './LumpsumPage';
-import NewsPage from './NewsPage';
+import NewsPage, { prefetchCategory } from './NewsPage';
 
 const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4';
 
@@ -1672,6 +1672,8 @@ export default function App() {
   useEffect(() => {
     document.documentElement.removeAttribute('data-theme');
     window.localStorage.removeItem('angel_theme');
+    // Prefetch default news category so /news loads instantly
+    prefetchCategory('India finance market');
   }, []);
 
   const location = useLocation();

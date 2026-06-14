@@ -4,6 +4,39 @@ import { RefreshCw, ExternalLink, Clock, X, Sparkles, FileText, Loader2 } from '
 
 const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 
+// Module-level prefetch cache — populated before NewsPage mounts
+const prefetchMap = new Map<string, Promise<Article[]>>();
+
+export function prefetchCategory(q: string) {
+  if (!prefetchMap.has(q)) {
+    prefetchMap.set(q, fetchGNews(q).catch(() => []));
+  }
+}
+
+// 5-minute client-side session cache for instant display on return visits
+const SESSION_KEY = 'angel_news_v1';
+const SESSION_TTL = 5 * 60 * 1000;
+
+function getSessionCache(q: string): Article[] | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const store = JSON.parse(raw) as Record<string, { ts: number; articles: Article[] }>;
+    const entry = store[q];
+    if (!entry || Date.now() - entry.ts > SESSION_TTL) return null;
+    return entry.articles;
+  } catch { return null; }
+}
+
+function setSessionCache(q: string, articles: Article[]) {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    store[q] = { ts: Date.now(), articles };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(store));
+  } catch {}
+}
+
 interface Article {
   title: string;
   description: string | null;
@@ -182,12 +215,12 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
             <div className="flex items-center gap-2 flex-shrink-0">
               <motion.button
                 onClick={onClose}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, boxShadow: '0 0 12px rgba(245,158,11,0.5)' }}
                 whileTap={{ scale: 0.9 }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}
+                className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', border: '2px solid rgba(245,158,11,0.4)', color: '#0a1322' }}
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" strokeWidth={2.5} />
               </motion.button>
             </div>
           </div>
@@ -382,15 +415,11 @@ export default function NewsPage() {
 
   const load = useCallback(async (catId: CategoryId) => {
     const id = ++reqId.current;
-    setLoading(true);
     setError('');
-    setArticles([]);
-
     const cat = CATEGORIES.find(c => c.id === catId)!;
-    try {
-      const raw = await fetchGNews(cat.q);
-      if (id !== reqId.current) return;
 
+    function applyAndTranslate(raw: Article[]) {
+      setSessionCache(cat.q, raw);
       setLastUpdated(new Date());
       setArticles(raw.map(a => ({ ...a, translating: true })));
       setLoading(false);
@@ -398,26 +427,45 @@ export default function NewsPage() {
       raw.forEach(async (a, i) => {
         const tk = `t:${a.title}`;
         const dk = `d:${a.description ?? ''}`;
-
         const [titleKn, descKn] = await Promise.all([
-          cache.current[tk]
-            ? Promise.resolve(cache.current[tk])
-            : translateKn(a.title),
+          cache.current[tk] ? Promise.resolve(cache.current[tk]) : translateKn(a.title),
           a.description && !cache.current[dk]
             ? translateKn(a.description)
             : Promise.resolve(cache.current[dk] ?? ''),
         ]);
-
         if (id !== reqId.current) return;
         cache.current[tk] = titleKn;
         if (a.description) cache.current[dk] = descKn;
-
         setArticles(prev => {
           const next = [...prev];
           if (next[i]) next[i] = { ...next[i], titleKn, descKn, translating: false };
           return next;
         });
       });
+    }
+
+    // 1. Session cache hit → show instantly, revalidate silently in background
+    const sessionCached = getSessionCache(cat.q);
+    if (sessionCached) {
+      setArticles(sessionCached);
+      setLoading(false);
+      try {
+        const fresh = await (prefetchMap.get(cat.q) ?? fetchGNews(cat.q));
+        prefetchMap.delete(cat.q);
+        if (id !== reqId.current) return;
+        applyAndTranslate(fresh);
+      } catch { /* keep showing cached */ }
+      return;
+    }
+
+    // 2. No session cache → skeleton, but drain prefetch promise if already in-flight
+    setLoading(true);
+    setArticles([]);
+    try {
+      const raw = await (prefetchMap.get(cat.q) ?? fetchGNews(cat.q));
+      prefetchMap.delete(cat.q);
+      if (id !== reqId.current) return;
+      applyAndTranslate(raw);
     } catch {
       if (id !== reqId.current) return;
       setError('failed');
