@@ -1672,8 +1672,17 @@ export default function App() {
   useEffect(() => {
     document.documentElement.removeAttribute('data-theme');
     window.localStorage.removeItem('angel_theme');
-    // Prefetch default news category so /news loads instantly
-    prefetchCategory('India finance market');
+    // Prefetch all news categories in background so /news loads instantly
+    const newsQueries = [
+      'India finance market',
+      'Nifty Sensex India',
+      'mutual funds India',
+      'India derivatives trading',
+      'India economy GDP',
+      'global markets gold',
+      'RBI India',
+    ];
+    newsQueries.forEach(q => prefetchCategory(q));
   }, []);
 
   const location = useLocation();
