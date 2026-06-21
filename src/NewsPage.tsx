@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, ExternalLink, Clock, X, Sparkles, FileText, Loader2 } from 'lucide-react';
+import { RefreshCw, ExternalLink, Clock, X, Sparkles, Loader2 } from 'lucide-react';
 
 const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 
@@ -11,6 +11,28 @@ export function prefetchCategory(q: string) {
   if (!prefetchMap.has(q)) {
     prefetchMap.set(q, fetchGNews(q).catch(() => []));
   }
+}
+
+// Module-level article detail cache — pre-warmed in background after news loads
+const detailCache = new Map<string, Promise<ArticleDetail>>();
+
+function getOrFetchDetail(url: string): Promise<ArticleDetail> {
+  if (!detailCache.has(url)) {
+    detailCache.set(
+      url,
+      fetchArticleDetail(url).catch(() => ({ summary: null, content: '' }))
+    );
+  }
+  return detailCache.get(url)!;
+}
+
+function schedulePrefetches(articles: Article[]) {
+  // Articles already in Supabase cache → instant, prefetch all immediately
+  articles.filter(a => a.summary).forEach(a => getOrFetchDetail(a.url));
+  // Articles without cache → stagger by 2s each to avoid hammering ScrapingDog/Gemini
+  articles.filter(a => !a.summary).forEach((a, i) =>
+    setTimeout(() => getOrFetchDetail(a.url), (i + 1) * 2000)
+  );
 }
 
 // 5-minute client-side session cache for instant display on return visits
@@ -44,6 +66,7 @@ interface Article {
   image: string | null;
   publishedAt: string;
   source: { name: string; url: string };
+  summary?: string | null;
   titleKn?: string;
   descKn?: string;
   translating?: boolean;
@@ -66,20 +89,47 @@ const CATEGORIES = [
 
 type CategoryId = (typeof CATEGORIES)[number]['id'];
 
+// Detect if text is already predominantly Kannada (skip translation)
+function isKannada(text: string): boolean {
+  const knChars = (text.match(/[ಀ-೿]/g) || []).length;
+  return knChars > text.length * 0.15;
+}
+
+async function translateChunk(text: string): Promise<string> {
+  const res = await fetch(
+    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=kn&dt=t&q=${encodeURIComponent(text)}`
+  );
+  const data = await res.json();
+  return (data[0] as [string, string][]).map(([t]) => t).join('');
+}
+
 async function translateKn(text: string): Promise<string> {
+  if (isKannada(text)) return text; // already Kannada — no HTTP calls needed
   try {
-    const res = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=kn&dt=t&q=${encodeURIComponent(text)}`
-    );
-    const data = await res.json();
-    return (data[0] as [string, string][]).map(([t]) => t).join('');
+    const lines = text.split('\n');
+    const nonEmpty = lines.map((l, i) => ({ l, i, empty: !l.trim() }));
+    const toTranslate = nonEmpty.filter(x => !x.empty).map(x => x.l);
+    if (!toTranslate.length) return text;
+
+    // Batch into chunks of 6 lines (2 calls max instead of 12)
+    const BATCH = 6;
+    const results: string[] = [];
+    for (let i = 0; i < toTranslate.length; i += BATCH) {
+      const batch = toTranslate.slice(i, i + BATCH).join('\n');
+      const translated = await translateChunk(batch);
+      results.push(...translated.split('\n'));
+    }
+
+    // Reconstruct with original empty lines
+    let ri = 0;
+    return lines.map(l => l.trim() ? (results[ri++] ?? l) : l).join('\n');
   } catch {
     return text;
   }
 }
 
 async function fetchGNews(q: string): Promise<Article[]> {
-  const params = new URLSearchParams({ q, max: '12' });
+  const params = new URLSearchParams({ q });
   const res = await fetch(`/api/news?${params}`);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -137,6 +187,9 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
   const [error, setError] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Server always returns Kannada summary — show directly, no client-side translation needed
+  const displaySummary = detail?.summary ?? article.summary ?? null;
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -146,7 +199,8 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
     let cancelled = false;
     setLoading(true);
     setError('');
-    fetchArticleDetail(article.url)
+    // Use prefetch cache if already in-flight or resolved — avoids duplicate fetches
+    getOrFetchDetail(article.url)
       .then(d => { if (!cancelled) { setDetail(d); setLoading(false); } })
       .catch(e => { if (!cancelled) { setError(String(e)); setLoading(false); } });
     return () => { cancelled = true; };
@@ -159,18 +213,6 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const formattedContent = detail?.content
-    ? detail.content
-        .replace(/#{1,6}\s+/g, '')        // strip markdown headings
-        .replace(/\*\*(.+?)\*\*/g, '$1')  // strip bold
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // strip links
-        .replace(/^\s*[-*+]\s+/gm, '• ')  // normalise bullets
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 20)
-        .slice(0, 80)
-        .join('\n\n')
-    : '';
 
   return (
     <AnimatePresence>
@@ -192,16 +234,17 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.25, ease }}
           onClick={e => e.stopPropagation()}
-          className="relative w-full max-w-2xl flex flex-col rounded-2xl overflow-hidden"
+          className="relative w-full max-w-3xl flex flex-col rounded-2xl overflow-hidden"
           style={{
             background: 'var(--bg)',
             border: '1px solid rgba(245,158,11,0.2)',
             boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
-            maxHeight: '88vh',
+            maxHeight: '92vh',
+            height: '92vh',
           }}
         >
           {/* Sticky header */}
-          <div className="flex items-start justify-between gap-3 p-5 flex-shrink-0"
+          <div className="flex items-start gap-3 p-5 pr-14 flex-shrink-0"
             style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
             <div className="flex-1 min-w-0">
               <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 inline-block"
@@ -212,18 +255,35 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
                 {article.titleKn || article.title}
               </h2>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <motion.button
-                onClick={onClose}
-                whileHover={{ scale: 1.1, boxShadow: '0 0 12px rgba(245,158,11,0.5)' }}
-                whileTap={{ scale: 0.9 }}
-                className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', border: '2px solid rgba(245,158,11,0.4)', color: '#0a1322' }}
-              >
-                <X className="w-4 h-4" strokeWidth={2.5} />
-              </motion.button>
-            </div>
           </div>
+
+          {/* Close button — perfectly circular, outside flex flow */}
+          <motion.button
+            onClick={onClose}
+            whileHover={{ scale: 1.1, boxShadow: '0 0 14px rgba(245,158,11,0.55)' }}
+            whileTap={{ scale: 0.9 }}
+            style={{
+              position: 'absolute',
+              top: '13px',
+              right: '13px',
+              width: '32px',
+              height: '32px',
+              minWidth: '32px',
+              minHeight: '32px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+              border: '2px solid rgba(255,255,255,0.25)',
+              boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 20,
+              padding: 0,
+            }}
+          >
+            <X style={{ width: '15px', height: '15px', color: '#000', strokeWidth: 3, display: 'block', flexShrink: 0 }} />
+          </motion.button>
 
           {/* Ghost source link — bottom-left, faded, reveals on hover */}
           <a
@@ -253,80 +313,33 @@ function ArticleModal({ article, onClose }: { article: Article; onClose: () => v
             {article.source.name}
           </a>
 
-          {/* Scrollable body */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 flex flex-col gap-6">
+          {/* Scrollable body — summary only */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6"
+            style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(245,158,11,0.3) transparent' }}>
 
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#f59e0b' }} />
-                <p className="text-sm" style={{ color: 'var(--muted)' }}>ಲೇಖನ ಮತ್ತು ಸಾರಾಂಶ ತಯಾರಿಸಲಾಗುತ್ತಿದೆ…</p>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1))', border: '1px solid rgba(245,158,11,0.25)' }}>
+                <Sparkles className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#f59e0b' }}>
+                  ಸಾರಾಂಶ
+                </span>
               </div>
-            )}
+            </div>
 
-            {!loading && error && (
-              <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
-                <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                  ಲೇಖನ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.
-                </p>
-              </div>
-            )}
-
-            {!loading && !error && detail && (
-              <>
-                {/* ── AI Summary Section ── */}
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-                      style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1))', border: '1px solid rgba(245,158,11,0.25)' }}>
-                      <Sparkles className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#f59e0b' }}>
-                        Claude AI ಸಾರಾಂಶ
-                      </span>
-                    </div>
-                  </div>
-
-                  {detail.summary ? (
-                    <div className="rounded-xl p-4"
-                      style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.12)' }}>
-                      <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--text)' }}>
-                        {detail.summary}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl p-4"
-                      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                      <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                        AI ಸಾರಾಂಶ ಲಭ್ಯವಿಲ್ಲ. ಕೆಳಗಿನ ಸಂಪೂರ್ಣ ಲೇಖನ ಓದಿ.
-                      </p>
-                    </div>
-                  )}
-                </section>
-
-                {/* ── Divider ── */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-                    style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                    <FileText className="w-3 h-3" style={{ color: 'var(--muted)' }} />
-                    <span className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>ಸಂಪೂರ್ಣ ಲೇಖನ</span>
-                  </div>
-                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+            {displaySummary ? (
+              <div className="rounded-xl p-5"
+                style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.12)' }}>
+                <div className="text-[15px] leading-8 whitespace-pre-line" style={{ color: 'var(--text)' }}>
+                  {displaySummary}
                 </div>
-
-                {/* ── Full Article Content ── */}
-                <section>
-                  {formattedContent ? (
-                    <div className="text-sm leading-7 whitespace-pre-line" style={{ color: 'var(--text)', opacity: 0.85 }}>
-                      {formattedContent}
-                    </div>
-                  ) : (
-                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                      ಲೇಖನದ ವಿಷಯ ಲಭ್ಯವಿಲ್ಲ.
-                    </p>
-                  )}
-
-                </section>
-              </>
+              </div>
+            ) : (
+              <div className="rounded-xl p-4 flex items-center gap-3"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" style={{ color: '#f59e0b' }} />
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>ಸಾರಾಂಶ ತಯಾರಿಸಲಾಗುತ್ತಿದೆ…</p>
+              </div>
             )}
           </div>
         </motion.div>
@@ -346,7 +359,7 @@ function NewsCard({ article, idx, onOpen }: { article: Article; idx: number; onO
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onOpen(); }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: idx * 0.05, ease }}
+      transition={{ duration: 0.4, delay: Math.min(idx, 12) * 0.05, ease }}
       className="group flex flex-col gap-3 rounded-2xl p-5 cursor-pointer"
       style={{
         background: 'var(--surface)',
@@ -395,7 +408,7 @@ function NewsCard({ article, idx, onOpen }: { article: Article; idx: number; onO
       <div className="mt-auto pt-3 flex items-center gap-1.5 text-xs font-semibold"
         style={{ borderTop: '1px solid var(--border)', color: '#f59e0b' }}>
         <Sparkles className="w-3 h-3" />
-        AI ಸಾರಾಂಶ ಮತ್ತು ಲೇಖನ ನೋಡಿ
+        ಸಾರಾಂಶ ನೋಡಿ
       </div>
     </motion.div>
   );
@@ -423,6 +436,9 @@ export default function NewsPage() {
       setLastUpdated(new Date());
       setArticles(raw.map(a => ({ ...a, translating: true })));
       setLoading(false);
+
+      // Pre-warm article detail cache in background so modal opens instantly
+      schedulePrefetches(raw);
 
       raw.forEach(async (a, i) => {
         const tk = `t:${a.title}`;
@@ -497,7 +513,13 @@ export default function NewsPage() {
               ಹಣಕಾಸು ಸುದ್ದಿ
             </h1>
             <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              ಕಾರ್ಡ್ ಕ್ಲಿಕ್ ಮಾಡಿ — AI ಸಾರಾಂಶ ಮತ್ತು ಸಂಪೂರ್ಣ ಲೇಖನ ನೋಡಿ
+              ಕಾರ್ಡ್ ಕ್ಲಿಕ್ ಮಾಡಿ — ಕನ್ನಡದಲ್ಲಿ ಸಾರಾಂಶ ನೋಡಿ
+              {articles.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                  style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  {articles.length} ಸುದ್ದಿಗಳು
+                </span>
+              )}
             </p>
           </div>
 
